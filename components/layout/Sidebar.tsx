@@ -297,12 +297,6 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    // ログアウト処理（今後実装: セッションクリア等）
-    router.push('/login');
-  };
 
   return (
     <>
@@ -321,10 +315,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           w-64 bg-white border-r border-gray-200
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          flex flex-col
         `}
       >
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="overflow-y-auto py-4 h-full">
           <ul className="space-y-1 px-3">
             {menuItems.map((item) => (
               <li key={item.id}>
@@ -352,29 +345,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             ))}
           </ul>
         </nav>
-
-        {/* ログアウトボタン */}
-        <div className="border-t border-gray-200 p-3">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors text-sm"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-            <span>ログアウト</span>
-          </button>
-        </div>
       </aside>
     </>
   );

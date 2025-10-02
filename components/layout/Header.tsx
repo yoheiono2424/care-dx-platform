@@ -51,8 +51,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
 
-        {/* 右側: ユーザー情報 */}
-        <div className="flex items-center gap-4">
+        {/* 右側: ユーザー情報 + ログアウト */}
+        <div className="flex items-center gap-2">
           {/* ユーザー情報（クリック可能） */}
           <button
             onClick={() => router.push('/profile')}
@@ -65,6 +65,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
               <p className="text-sm font-medium text-gray-900">山田太郎</p>
               <p className="text-xs text-gray-500">管理者</p>
             </div>
+          </button>
+
+          {/* ログアウトボタン */}
+          <button
+            onClick={() => router.push('/login')}
+            className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            ログアウト
           </button>
         </div>
       </div>
