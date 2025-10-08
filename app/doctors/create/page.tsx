@@ -13,6 +13,7 @@ export default function DoctorCreatePage() {
     name: '',
     status: '',
     hospital: '',
+    address: '',
     phone: '',
     fax: '',
     mobilePhone: '',
@@ -92,6 +93,22 @@ export default function DoctorCreatePage() {
                   setFormData({ ...formData, hospital: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* 住所 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                住所
+              </label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="東京都新宿区西新宿1-1-1"
               />
             </div>
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
@@ -9,7 +8,6 @@ import Alert from '@/components/common/Alert';
 import { APP_INFO } from '@/lib/constants';
 
 export default function PasswordResetPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
 import { mockMealData } from '@/data/mockMeals';
-import type { MealRecord } from '@/data/mockMeals';
 
 export default function MealsPage() {
   const router = useRouter();
@@ -74,6 +73,7 @@ export default function MealsPage() {
       '食事摂取割合',
       '水分量',
       '水分摂取量',
+      '備考',
     ];
 
     const csvContent = [
@@ -91,6 +91,7 @@ export default function MealsPage() {
           record.intakePercentage,
           record.waterAmount,
           record.waterIntake,
+          record.remarks,
         ].join(',')
       ),
     ].join('\n');
@@ -290,10 +291,16 @@ export default function MealsPage() {
                     {record.waterAmount}ml
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-2">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">水分摂取量</span>
                   <span className="text-sm font-medium text-gray-900">
                     {record.waterIntake}ml
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">備考</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.remarks || '—'}
                   </span>
                 </div>
               </div>
@@ -347,6 +354,9 @@ export default function MealsPage() {
                   水分摂取量
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  備考
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   編集
                 </th>
               </tr>
@@ -386,6 +396,9 @@ export default function MealsPage() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
                     {record.waterIntake}ml
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
+                    {record.remarks || '—'}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                     <button

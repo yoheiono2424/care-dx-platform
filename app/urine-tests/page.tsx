@@ -1,20 +1,19 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useMemo, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
 import { mockUrineTestData } from '@/data/mockUrineTests';
-import type { UrineTestData } from '@/data/mockUrineTests';
 
 export default function UrineTestsPage() {
-  const router = useRouter();
-
   // フィルター状態
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedPatient, setSelectedPatient] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+
+  // CSVアップロード用のref
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -67,6 +66,24 @@ export default function UrineTestsPage() {
     window.addEventListener('resize', syncScrollbarWidth);
     return () => window.removeEventListener('resize', syncScrollbarWidth);
   }, [filteredRecords]);
+
+  // CSVアップロード
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // バックエンド実装時はここでファイルをアップロード
+      console.log('アップロードファイル:', file.name);
+      alert(
+        `CSVファイル「${file.name}」を選択しました。\n※バックエンド実装時にデータ取込処理を行います。`
+      );
+      // input要素をリセット（同じファイルを再選択可能にする）
+      event.target.value = '';
+    }
+  };
 
   // CSVダウンロード
   const handleDownloadCSV = () => {
@@ -151,11 +168,6 @@ export default function UrineTestsPage() {
     });
   };
 
-  // 編集画面へ遷移
-  const handleEdit = (id: string) => {
-    router.push(`/urine-tests/${id}/edit`);
-  };
-
   return (
     <MainLayout>
       <div className="p-4 md:p-6">
@@ -168,9 +180,22 @@ export default function UrineTestsPage() {
             </p>
           </div>
           {!isMobile && (
-            <Button variant="primary" onClick={handleDownloadCSV}>
-              CSVダウンロード
-            </Button>
+            <div className="flex gap-3">
+              {/* CSVアップロード用の非表示input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button variant="primary" onClick={handleUploadClick}>
+                CSVアップロード
+              </Button>
+              <Button variant="outline" onClick={handleDownloadCSV}>
+                CSVダウンロード
+              </Button>
+            </div>
           )}
         </div>
 
@@ -232,23 +257,13 @@ export default function UrineTestsPage() {
             <div key={record.id} className="bg-white rounded-lg shadow p-4">
               {/* ヘッダー */}
               <div className="mb-4 pb-4 border-b border-gray-200">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">
-                      {record.patientName}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {record.registeredAt}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() =>
-                      router.push(`/urine-tests/${record.id}/edit`)
-                    }
-                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
-                  >
-                    編集
-                  </button>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {record.patientName}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {record.registeredAt}
+                  </p>
                 </div>
               </div>
 
@@ -534,9 +549,6 @@ export default function UrineTestsPage() {
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
                     亜鉛
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                    編集
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -604,14 +616,6 @@ export default function UrineTestsPage() {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
                       {record.zincScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
-                      <button
-                        onClick={() => handleEdit(record.id)}
-                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                      >
-                        編集
-                      </button>
                     </td>
                   </tr>
                 ))}

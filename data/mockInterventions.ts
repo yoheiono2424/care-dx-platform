@@ -8,6 +8,9 @@ export interface InterventionRecord {
   patientName: string; // 利用者名
   interventionType: string; // 介入区分
   interventionContent: string; // 介入内容
+  doctorName: string; // 医師
+  doctorInstructions: string; // 医師からの指示内容
+  notes: string; // 備考
 }
 
 // シード値を使った疑似乱数生成
@@ -61,6 +64,37 @@ const generateInterventionData = (): InterventionRecord[] => {
     '家族との面会に立ち会い、相談対応。',
   ];
 
+  const doctorNames = [
+    '山田太郎',
+    '佐藤健一',
+    '田中美咲',
+    '鈴木一郎',
+    '高橋花子',
+    '渡辺誠',
+  ];
+
+  const doctorInstructionsList = [
+    'バイタルチェックを1日2回実施してください。',
+    '服薬時間を厳守し、服用後30分は様子を観察してください。',
+    '食事摂取量が少ない場合は報告してください。',
+    '排泄状況を記録し、異常があれば連絡してください。',
+    'リハビリは無理のない範囲で実施してください。',
+    '水分摂取を促し、脱水に注意してください。',
+    '',
+    '',
+  ];
+
+  const notesList = [
+    '本人の希望により午前中の実施。',
+    '家族同席のもと実施。',
+    '特に問題なし。',
+    '',
+    '次回は午後に実施予定。',
+    '体調良好。',
+    '',
+    '',
+  ];
+
   const data: InterventionRecord[] = [];
   let seed = 12345;
 
@@ -98,6 +132,11 @@ const generateInterventionData = (): InterventionRecord[] => {
       const interventionIndex = Math.floor(
         seededRandom(seed++) * interventionTypes.length
       );
+      const doctorIndex = Math.floor(seededRandom(seed++) * doctorNames.length);
+      const instructionIndex = Math.floor(
+        seededRandom(seed++) * doctorInstructionsList.length
+      );
+      const notesIndex = Math.floor(seededRandom(seed++) * notesList.length);
 
       data.push({
         id: data.length + 1,
@@ -115,6 +154,9 @@ const generateInterventionData = (): InterventionRecord[] => {
         patientName: patientNames[patientIndex],
         interventionType: interventionTypes[interventionIndex],
         interventionContent: interventionContents[interventionIndex],
+        doctorName: doctorNames[doctorIndex],
+        doctorInstructions: doctorInstructionsList[instructionIndex],
+        notes: notesList[notesIndex],
       });
     }
   }

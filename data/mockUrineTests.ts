@@ -57,7 +57,7 @@ const generateUrineTestData = (): UrineTestData[] => {
   let seed = 12345; // 固定シード値
 
   // 各利用者について、過去30日間のデータを生成
-  patientNames.forEach((name, patientIndex) => {
+  patientNames.forEach((name) => {
     for (let day = 29; day >= 0; day--) {
       const date = new Date();
       date.setDate(date.getDate() - day);

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
+import { mockDoctorData } from '@/data/mockDoctors';
 
 export default function InterventionEditPage() {
   const router = useRouter();
@@ -18,6 +19,9 @@ export default function InterventionEditPage() {
     patientName: '鈴木花子',
     interventionType: 'バイタルチェック',
     interventionContent: '血圧測定を実施。問題なし。',
+    doctorName: '山田太郎',
+    doctorInstructions: 'バイタルチェックを1日2回実施してください。',
+    notes: '特に問題なし。',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -177,6 +181,67 @@ export default function InterventionEditPage() {
                 }
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* 医師 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                医師
+              </label>
+              <select
+                value={formData.doctorName}
+                onChange={(e) =>
+                  setFormData({ ...formData, doctorName: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">選択してください</option>
+                {mockDoctorData
+                  .filter((doctor) => doctor.status === '利用中')
+                  .map((doctor) => (
+                    <option key={doctor.id} value={doctor.name}>
+                      {doctor.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* 医師からの指示内容 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                医師からの指示内容
+              </label>
+              <textarea
+                value={formData.doctorInstructions}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    doctorInstructions: e.target.value,
+                  })
+                }
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="医師からの指示内容を入力してください"
+              />
+            </div>
+
+            {/* 備考 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                備考
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    notes: e.target.value,
+                  })
+                }
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="備考を入力してください"
               />
             </div>
           </div>

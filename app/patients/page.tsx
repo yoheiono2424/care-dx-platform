@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
 import { mockPatientData } from '@/data/mockPatients';
-import type { PatientRecord } from '@/data/mockPatients';
 
 export default function PatientsPage() {
   const router = useRouter();
@@ -13,6 +12,19 @@ export default function PatientsPage() {
   // フィルター状態
   const [selectedName, setSelectedName] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // CSVアップロード用のref
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // フィルタリングされたデータ
   const filteredRecords = useMemo(() => {
@@ -31,6 +43,58 @@ export default function PatientsPage() {
     });
   }, [selectedName, selectedStatus]);
 
+  // CSVアップロード
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // バックエンド実装時はここでファイルをアップロード
+      console.log('アップロードファイル:', file.name);
+      alert(
+        `CSVファイル「${file.name}」を選択しました。\n※バックエンド実装時にデータ取込処理を行います。`
+      );
+      // input要素をリセット（同じファイルを再選択可能にする）
+      event.target.value = '';
+    }
+  };
+
+  // CSVダウンロード
+  const handleDownloadCSV = () => {
+    const headers = ['部屋番号', '氏名', '状況', '年齢', '性別', '利用開始日'];
+
+    const csvContent = [
+      headers.join(','),
+      ...filteredRecords.map((record) =>
+        [
+          record.roomNumber,
+          record.name,
+          record.status,
+          record.age,
+          record.gender,
+          record.admissionDate,
+        ].join(',')
+      ),
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute(
+      'download',
+      `利用者データ_${new Date().toISOString().split('T')[0]}.csv`
+    );
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <MainLayout>
       <div className="p-4 md:p-6">
@@ -39,14 +103,40 @@ export default function PatientsPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-800">利用者管理</h1>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => router.push('/patients/create')}
-            >
-              利用者作成
-            </Button>
-          </div>
+          {!isMobile && (
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => router.push('/patients/create')}
+              >
+                利用者作成
+              </Button>
+              {/* CSVアップロード用の非表示input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button variant="primary" onClick={handleUploadClick}>
+                CSVアップロード
+              </Button>
+              <Button variant="outline" onClick={handleDownloadCSV}>
+                CSVダウンロード
+              </Button>
+            </div>
+          )}
+          {isMobile && (
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => router.push('/patients/create')}
+              >
+                利用者作成
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* フィルター */}

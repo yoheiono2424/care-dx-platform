@@ -136,11 +136,6 @@ export default function TaskDetailPage() {
     return 'bg-green-100 text-green-800';
   };
 
-  const getStatusColor = (status: string) => {
-    if (status === '完了') return 'bg-green-500 text-white';
-    return 'bg-gray-500 text-white';
-  };
-
   const getStatusButtonStyle = (status: string) => {
     if (status === '完了') {
       return 'bg-green-500 text-white cursor-default';
@@ -219,12 +214,6 @@ export default function TaskDetailPage() {
                     タスク名
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    カテゴリ
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    期限
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     優先度
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -245,12 +234,6 @@ export default function TaskDetailPage() {
                           {task.description}
                         </p>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {task.category}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {task.dueDate}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
@@ -301,20 +284,12 @@ export default function TaskDetailPage() {
 
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-gray-500">カテゴリ</p>
-                    <p className="text-gray-900">{task.category}</p>
-                  </div>
-                  <div>
                     <p className="text-gray-500">優先度</p>
                     <span
                       className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}
                     >
                       {task.priority}
                     </span>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">期限</p>
-                    <p className="text-gray-900 text-xs">{task.dueDate}</p>
                   </div>
                   <div>
                     <p className="text-gray-500">担当者</p>

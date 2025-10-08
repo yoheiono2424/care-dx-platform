@@ -10,8 +10,8 @@ export interface AccountRecord {
   name: string; // スタッフ名
   email: string; // メールアドレス
   role: string; // 役職
-  facility: string; // 施設
-  floor: string; // フロア
+  facilities: string[]; // 施設（複数選択可能）
+  floors: string[]; // フロア（複数選択可能）
   emergencyContact: string; // 緊急連絡先
   qualifications: string[]; // 保有資格
   status: string; // 利用ステータス
@@ -45,14 +45,36 @@ export const mockAccountData: AccountRecord[] = Array.from(
     const seed = i * 100;
     const nameIndex = Math.floor(seededRandom(seed + 1) * names.length);
     const roleIndex = Math.floor(seededRandom(seed + 2) * roles.length);
-    const facilityIndex = Math.floor(
-      seededRandom(seed + 3) * facilities.length
-    );
-    const floorIndex = Math.floor(seededRandom(seed + 4) * floors.length);
     const statusIndex = Math.floor(seededRandom(seed + 5) * statuses.length);
     const qualIndex = Math.floor(
       seededRandom(seed + 6) * qualificationsOptions.length
     );
+
+    // 施設（1-2個をランダムに選択）
+    const facilityCount = Math.floor(seededRandom(seed + 3) * 2) + 1; // 1 or 2
+    const selectedFacilities: string[] = [];
+    const facilityIndices = new Set<number>();
+    while (facilityIndices.size < facilityCount) {
+      const idx = Math.floor(
+        seededRandom(seed + 3 + facilityIndices.size * 10) * facilities.length
+      );
+      facilityIndices.add(idx);
+    }
+    Array.from(facilityIndices).forEach((idx) =>
+      selectedFacilities.push(facilities[idx])
+    );
+
+    // フロア（1-2個をランダムに選択）
+    const floorCount = Math.floor(seededRandom(seed + 4) * 2) + 1; // 1 or 2
+    const selectedFloors: string[] = [];
+    const floorIndices = new Set<number>();
+    while (floorIndices.size < floorCount) {
+      const idx = Math.floor(
+        seededRandom(seed + 4 + floorIndices.size * 10) * floors.length
+      );
+      floorIndices.add(idx);
+    }
+    Array.from(floorIndices).forEach((idx) => selectedFloors.push(floors[idx]));
 
     // スタッフID: 000001から順に
     const staffId = String(i + 1).padStart(6, '0');
@@ -82,8 +104,8 @@ export const mockAccountData: AccountRecord[] = Array.from(
       name: names[nameIndex],
       email,
       role: roles[roleIndex],
-      facility: facilities[facilityIndex],
-      floor: floors[floorIndex],
+      facilities: selectedFacilities,
+      floors: selectedFloors,
       emergencyContact,
       qualifications: qualificationsOptions[qualIndex],
       status: statuses[statusIndex],

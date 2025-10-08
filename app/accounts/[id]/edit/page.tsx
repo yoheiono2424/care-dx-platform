@@ -14,7 +14,7 @@ export default function AccountEditPage() {
     email: 'staff1@example.com',
     status: '利用中',
     role: 'スタッフ',
-    facility: 'ケアホーム熊本',
+    facilities: ['ケアホーム熊本'],
     floors: ['1階'],
     emergencyContact: '090-1234-5678',
     notes: '',
@@ -151,25 +151,35 @@ export default function AccountEditPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 施設
               </label>
-              <select
-                multiple
-                value={[formData.facility]}
-                onChange={(e) => {
-                  const selected = Array.from(
-                    e.target.selectedOptions,
-                    (option) => option.value
-                  );
-                  if (selected.length > 0) {
-                    setFormData({ ...formData, facility: selected[0] });
-                  }
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                size={3}
-              >
-                <option value="ケアホーム熊本">ケアホーム熊本</option>
-                <option value="ケアホーム福岡">ケアホーム福岡</option>
-                <option value="ケアホーム鹿児島">ケアホーム鹿児島</option>
-              </select>
+              <div className="space-y-2">
+                {['ケアホーム熊本', 'ケアホーム福岡', 'ケアホーム鹿児島'].map(
+                  (facility) => (
+                    <label key={facility} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.facilities.includes(facility)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({
+                              ...formData,
+                              facilities: [...formData.facilities, facility],
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              facilities: formData.facilities.filter(
+                                (f) => f !== facility
+                              ),
+                            });
+                          }
+                        }}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700">{facility}</span>
+                    </label>
+                  )
+                )}
+              </div>
             </div>
 
             {/* フロア (複数選択) */}
@@ -177,26 +187,31 @@ export default function AccountEditPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 フロア
               </label>
-              <select
-                multiple
-                value={formData.floors}
-                onChange={(e) => {
-                  const selected = Array.from(
-                    e.target.selectedOptions,
-                    (option) => option.value
-                  );
-                  setFormData({ ...formData, floors: selected });
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                size={4}
-              >
-                <option value="1階">1階</option>
-                <option value="2階">2階</option>
-                <option value="3階">3階</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                Ctrl/Cmdキーを押しながら複数選択できます
-              </p>
+              <div className="space-y-2">
+                {['1階', '2階', '3階'].map((floor) => (
+                  <label key={floor} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.floors.includes(floor)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({
+                            ...formData,
+                            floors: [...formData.floors, floor],
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            floors: formData.floors.filter((f) => f !== floor),
+                          });
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-gray-700">{floor}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* 保有資格 */}

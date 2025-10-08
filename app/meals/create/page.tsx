@@ -1,35 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
+import { mockMealData } from '@/data/mockMeals';
 
 export default function MealCreatePage() {
   const router = useRouter();
   const [showBulkModal, setShowBulkModal] = useState(false);
 
-  // フォームデータ
-  const [formData, setFormData] = useState({
-    patientName: '',
-    floor: '',
-    mealContentPattern: '',
-    foodBefore: '',
-    preMealAmount: '',
-    foodResidue: '',
-    mainDishIntake: '',
-    sideDishIntake: '',
-    intakePercentage: '',
-    waterAmount: '',
-    waterIntake: '',
-  });
+  // フィルター状態
+  const [selectedPatient, setSelectedPatient] = useState('');
+  const [selectedFloor, setSelectedFloor] = useState('');
 
-  // 一括登録用のデータ
-  const [bulkData, setBulkData] = useState({
-    patientName: '',
-    patientId: '',
-    floor: '',
-  });
+  // フィルタリングされたデータ
+  const filteredRecords = useMemo(() => {
+    // 最新の食事記録のみを取得（各利用者の最新1件）
+    const latestRecords = new Map();
+    mockMealData.forEach((record) => {
+      if (!latestRecords.has(record.patientName)) {
+        latestRecords.set(record.patientName, record);
+      }
+    });
+
+    return Array.from(latestRecords.values()).filter((record) => {
+      // 利用者名フィルター
+      if (selectedPatient && record.patientName !== selectedPatient) {
+        return false;
+      }
+
+      // フロアフィルター
+      if (selectedFloor && record.floor !== selectedFloor) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [selectedPatient, selectedFloor]);
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
@@ -41,18 +49,6 @@ export default function MealCreatePage() {
     { id: '4', name: '高橋 美咲' },
     { id: '5', name: '渡辺 健太' },
   ];
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // 保存処理（今後実装）
-    router.push('/meals');
-  };
-
-  const handleBulkSubmit = () => {
-    // 一括登録処理（今後実装）
-    setShowBulkModal(false);
-    router.push('/meals');
-  };
 
   const toggleUserSelection = (userId: string) => {
     setSelectedUsers((prev) =>
@@ -67,6 +63,12 @@ export default function MealCreatePage() {
       <div className="p-4 md:p-6">
         {/* ヘッダー */}
         <div className="mb-6">
+          <button
+            onClick={() => router.push('/meals')}
+            className="mb-3 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+          >
+            ← 一覧に戻る
+          </button>
           <h1 className="text-2xl font-bold text-gray-800">食事記録作成</h1>
         </div>
 
@@ -80,11 +82,9 @@ export default function MealCreatePage() {
               </label>
               <input
                 type="text"
-                placeholder="施設名"
-                value={formData.patientName}
-                onChange={(e) =>
-                  setFormData({ ...formData, patientName: e.target.value })
-                }
+                placeholder="利用者名"
+                value={selectedPatient}
+                onChange={(e) => setSelectedPatient(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -96,10 +96,8 @@ export default function MealCreatePage() {
               <input
                 type="text"
                 placeholder="フロア"
-                value={formData.floor}
-                onChange={(e) =>
-                  setFormData({ ...formData, floor: e.target.value })
-                }
+                value={selectedFloor}
+                onChange={(e) => setSelectedFloor(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -125,13 +123,16 @@ export default function MealCreatePage() {
         </div>
 
         {/* スマホ表示: カード形式 */}
-        <div className="md:hidden">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="bg-white rounded-lg shadow p-4">
+        <div className="md:hidden space-y-4">
+          {filteredRecords.map((record) => (
+            <div key={record.id} className="bg-white rounded-lg shadow p-4">
               <div className="mb-4 pb-4 border-b border-gray-200">
-                <h3 className="text-lg font-bold text-gray-900">田中 太郎</h3>
-                <p className="text-sm text-gray-600">
-                  登録日時: 2025-10-01 08:00
+                <h3 className="text-lg font-bold text-gray-900">
+                  {record.patientName}
+                </h3>
+                <p className="text-sm text-gray-600">{record.floor}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  登録日時: {record.registeredAt}
                 </p>
               </div>
 
@@ -140,8 +141,11 @@ export default function MealCreatePage() {
                   <label className="block text-sm text-gray-600 mb-1">
                     食事内容パターン
                   </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value=""></option>
+                  <select
+                    defaultValue={record.mealContentPattern}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">選択してください</option>
                     <option value="通常食">通常食</option>
                     <option value="軟菜食">軟菜食</option>
                     <option value="きざみ食">きざみ食</option>
@@ -156,161 +160,173 @@ export default function MealCreatePage() {
                   </label>
                   <input
                     type="number"
+                    defaultValue={record.preMealAmount}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">食事残渣量</span>
-                  <span className="text-sm font-medium text-gray-900">80g</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.foodResidue}g
+                  </span>
                 </div>
 
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">食事摂取量-主食</span>
-                  <span className="text-sm font-medium text-gray-900">85%</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.mainDishIntake}%
+                  </span>
                 </div>
 
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">食事摂取量-副食</span>
-                  <span className="text-sm font-medium text-gray-900">90%</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.sideDishIntake}%
+                  </span>
                 </div>
 
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">食事摂取割合</span>
-                  <span className="text-sm font-medium text-gray-900">87%</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.intakePercentage}%
+                  </span>
                 </div>
 
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">水分量</span>
                   <span className="text-sm font-medium text-gray-900">
-                    300ml
+                    {record.waterAmount}ml
                   </span>
                 </div>
 
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">水分摂取量</span>
                   <span className="text-sm font-medium text-gray-900">
-                    280ml
+                    {record.waterIntake}ml
                   </span>
                 </div>
 
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => router.push('/meals/1/edit')}
-                    className="w-full px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                  >
-                    編集
-                  </button>
+                <div className="flex justify-between py-2">
+                  <span className="text-sm text-gray-600">備考</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.remarks || '—'}
+                  </span>
                 </div>
               </div>
             </div>
-          </form>
+          ))}
+
+          {/* データなしメッセージ */}
+          {filteredRecords.length === 0 && (
+            <div className="text-center py-12 bg-white rounded-lg shadow">
+              <p className="text-gray-500">データがありません</p>
+            </div>
+          )}
         </div>
 
         {/* PC表示: テーブル */}
-        <form
-          onSubmit={handleSubmit}
-          className="hidden md:block bg-white rounded-lg shadow p-6"
-        >
-          <div className="space-y-6">
-            {/* テーブル形式の入力 */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      登録日時
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      利用者名
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      食事内容パターン
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      食前の食事量
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      食事残渣量
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      食事摂取量-主食
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      食事摂取量-副食
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      食事摂取割合
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      水分量
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                      水分摂取量
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                      編集
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white">
-                  <tr>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                      2025-10-01 08:00
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                      田中 太郎
-                    </td>
-                    <td className="px-4 py-3 border-r border-gray-200">
-                      <select className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm">
-                        <option value=""></option>
-                        <option value="通常食">通常食</option>
-                        <option value="軟菜食">軟菜食</option>
-                        <option value="きざみ食">きざみ食</option>
-                        <option value="ミキサー食">ミキサー食</option>
-                        <option value="治療食">治療食</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-3 border-r border-gray-200">
-                      <input
-                        type="number"
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                      80g
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                      85%
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                      90%
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                      87%
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                      300ml
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                      280ml
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center">
-                      <button
-                        type="button"
-                        onClick={() => router.push('/meals/1/edit')}
-                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                      >
-                        編集
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+        <div className="hidden md:block bg-white rounded-lg shadow overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  登録日時
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  利用者名
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  食事内容パターン
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  食前の食事量
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  食事残渣量
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  食事摂取量-主食
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  食事摂取量-副食
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  食事摂取割合
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  水分量
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                  水分摂取量
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                  備考
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredRecords.map((record) => (
+                <tr key={record.id}>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                    {record.registeredAt}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                    {record.patientName}
+                  </td>
+                  <td className="px-4 py-3 border-r border-gray-200">
+                    <select
+                      defaultValue={record.mealContentPattern}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                    >
+                      <option value="">選択してください</option>
+                      <option value="通常食">通常食</option>
+                      <option value="軟菜食">軟菜食</option>
+                      <option value="きざみ食">きざみ食</option>
+                      <option value="ミキサー食">ミキサー食</option>
+                      <option value="治療食">治療食</option>
+                    </select>
+                  </td>
+                  <td className="px-4 py-3 border-r border-gray-200">
+                    <input
+                      type="number"
+                      defaultValue={record.preMealAmount}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                    />
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                    {record.foodResidue}g
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                    {record.mainDishIntake}%
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                    {record.sideDishIntake}%
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                    {record.intakePercentage}%
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                    {record.waterAmount}ml
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                    {record.waterIntake}ml
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900">
+                    {record.remarks || '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* データなしメッセージ */}
+          {filteredRecords.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">データがありません</p>
             </div>
-          </div>
-        </form>
+          )}
+        </div>
 
         {/* 一括登録モーダル */}
         {showBulkModal && (
@@ -318,7 +334,9 @@ export default function MealCreatePage() {
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
               {/* ヘッダー */}
               <div className="flex justify-between items-center p-4 border-b">
-                <h2 className="text-lg font-semibold text-gray-900">フロア</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  一括登録
+                </h2>
                 <button
                   onClick={() => setShowBulkModal(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -339,43 +357,11 @@ export default function MealCreatePage() {
 
               {/* コンテンツ */}
               <div className="p-6 space-y-4">
-                {/* 利用者名 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    利用者名
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="施設名"
-                    value={bulkData.patientName}
-                    onChange={(e) =>
-                      setBulkData({ ...bulkData, patientName: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                {/* フロア */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    フロア
-                  </label>
-                  <select
-                    value={bulkData.floor}
-                    onChange={(e) =>
-                      setBulkData({ ...bulkData, floor: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">選択してください</option>
-                    <option value="1階">1階</option>
-                    <option value="2階">2階</option>
-                    <option value="3階">3階</option>
-                  </select>
-                </div>
-
                 {/* 利用者リスト */}
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    利用者を選択
+                  </label>
                   <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-md p-3">
                     {dummyUsers.map((user) => (
                       <label
@@ -389,7 +375,7 @@ export default function MealCreatePage() {
                           className="w-4 h-4"
                         />
                         <span className="text-sm text-gray-900">
-                          {user.name}（{user.id}）
+                          {user.name}
                         </span>
                       </label>
                     ))}

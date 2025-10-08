@@ -21,12 +21,13 @@ export default function MealEditPage() {
     intakePercentage: '87',
     waterAmount: '300',
     waterIntake: '280',
+    remarks: '完食',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // 保存処理（今後実装）
-    router.push('/meals/create');
+    router.push('/meals');
   };
 
   return (
@@ -34,6 +35,12 @@ export default function MealEditPage() {
       <div className="p-4 md:p-6">
         {/* ヘッダー */}
         <div className="mb-6">
+          <button
+            onClick={() => router.push('/meals')}
+            className="mb-3 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+          >
+            ← 一覧に戻る
+          </button>
           <h1 className="text-2xl font-bold text-gray-800">食事記録編集</h1>
         </div>
 
@@ -224,6 +231,22 @@ export default function MealEditPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
+            {/* 備考 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                備考
+              </label>
+              <textarea
+                value={formData.remarks}
+                onChange={(e) =>
+                  setFormData({ ...formData, remarks: e.target.value })
+                }
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="備考を入力してください"
+              />
+            </div>
           </div>
 
           {/* ボタン */}
@@ -232,7 +255,7 @@ export default function MealEditPage() {
               type="button"
               variant="outline"
               fullWidth
-              onClick={() => router.push('/meals/create')}
+              onClick={() => router.push('/meals')}
             >
               キャンセル
             </Button>

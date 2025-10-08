@@ -8,6 +8,7 @@ export interface VitalRecord {
   floor: string;
   bloodPressure: string; // 血圧 (例: "120/80")
   pulse: number; // 脈拍
+  respiratoryRate: number; // 呼吸数 (回/分)
   oxygenSaturation: number; // 酸素飽和度 (SpO2)
   temperature: number; // 体温
   ecg: string; // 心電図 (正常/異常)
@@ -75,6 +76,7 @@ const generateVitalRecords = (): VitalRecord[] => {
         const bloodPressureLow =
           baseBloodPressureLow + Math.floor(Math.random() * 15) - 7;
         const pulse = basePulse + Math.floor(Math.random() * 20) - 10;
+        const respiratoryRate = 15 + Math.floor(Math.random() * 10) - 5; // 呼吸数 10-20回/分
         const oxygenSaturation = 95 + Math.floor(Math.random() * 5);
         const temperature =
           Math.round((baseTemperature + Math.random() * 1.0 - 0.5) * 10) / 10;
@@ -93,6 +95,7 @@ const generateVitalRecords = (): VitalRecord[] => {
           floor,
           bloodPressure: `${bloodPressureHigh}/${bloodPressureLow}`,
           pulse,
+          respiratoryRate,
           oxygenSaturation,
           temperature,
           ecg,

@@ -38,7 +38,10 @@ export default function AccountsPage() {
       }
 
       // フロアフィルター
-      if (selectedFloor && !record.floor.includes(selectedFloor)) {
+      if (
+        selectedFloor &&
+        !record.floors.some((floor) => floor.includes(selectedFloor))
+      ) {
         return false;
       }
 
@@ -161,13 +164,13 @@ export default function AccountsPage() {
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">施設</span>
                   <span className="text-sm font-medium text-gray-900">
-                    {record.facility}
+                    {record.facilities.join(', ')}
                   </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">フロア</span>
                   <span className="text-sm font-medium text-gray-900">
-                    {record.floor}
+                    {record.floors.join(', ')}
                   </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
@@ -260,10 +263,10 @@ export default function AccountsPage() {
                     {record.email}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
-                    {record.facility}
+                    {record.facilities.join(', ')}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
-                    {record.floor}
+                    {record.floors.join(', ')}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
                     {record.role}

@@ -11,6 +11,7 @@ export interface MealRecord {
   intakePercentage: number; // 食事摂取割合
   waterAmount: number; // 水分量
   waterIntake: number; // 水分摂取量
+  remarks: string; // 備考
 }
 
 // シード値を使った疑似乱数生成
@@ -82,6 +83,22 @@ const generateMealData = (): MealRecord[] => {
           waterAmount * (0.6 + seededRandom(seed++) * 0.4)
         );
 
+        // 備考: ランダムで生成
+        const remarksOptions = [
+          '完食',
+          '少し残した',
+          '食欲がない様子',
+          '普通に摂取',
+          '水分摂取を促した',
+          '',
+          '',
+          '',
+        ];
+        const remarks =
+          remarksOptions[
+            Math.floor(seededRandom(seed++) * remarksOptions.length)
+          ];
+
         data.push({
           id: id,
           registeredAt: `${dateStr} ${meal.time}`,
@@ -98,6 +115,7 @@ const generateMealData = (): MealRecord[] => {
           intakePercentage: intakePercentage,
           waterAmount: waterAmount,
           waterIntake: waterIntake,
+          remarks: remarks,
         });
 
         id++;

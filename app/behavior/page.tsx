@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
 import { mockBehaviorData } from '@/data/mockBehaviorData';
-import type { BehaviorData } from '@/data/mockBehaviorData';
 
 export default function BehaviorPage() {
   // フィルター状態
@@ -50,14 +49,14 @@ export default function BehaviorPage() {
   // CSVダウンロード
   const handleDownloadCSV = () => {
     const headers = [
-      '入居者名',
-      '部屋名',
+      '利用者名',
+      '居室番号',
       '臥床時間(平均)',
       '立ち上がり回数-ベッド(平均)',
       '立ち上がり回数-ベッド外(平均)',
       '立ち上がり回数-合計',
       '居室外滞在時間(平均)',
-      '離棟の実施回数(平均)',
+      '職員の来室回数(平均)',
     ];
 
     const csvContent = [
@@ -263,7 +262,7 @@ export default function BehaviorPage() {
                   </div>
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm text-gray-600">
-                      離棟の実施回数(平均)
+                      職員の来室回数(平均)
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-gray-900">
@@ -300,13 +299,13 @@ export default function BehaviorPage() {
                   rowSpan={2}
                   className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-b-2 border-gray-200"
                 >
-                  入居者名
+                  利用者名
                 </th>
                 <th
                   rowSpan={2}
                   className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-b-2 border-gray-200"
                 >
-                  部屋名
+                  居室番号
                 </th>
                 <th
                   colSpan={4}
@@ -352,7 +351,7 @@ export default function BehaviorPage() {
                   (平均)
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-green-50 border-b-2 border-gray-200 whitespace-nowrap">
-                  離棟の実施回数
+                  職員の来室回数
                   <br />
                   (平均)
                 </th>

@@ -24,6 +24,7 @@ export default function VitalEditPage({
     bloodPressureHigh: '',
     bloodPressureLow: '',
     pulse: '',
+    respiratoryRate: '',
     oxygenSaturation: '',
     temperature: '',
     ecg: '正常',
@@ -54,6 +55,7 @@ export default function VitalEditPage({
         bloodPressureHigh: high,
         bloodPressureLow: low,
         pulse: String(record.pulse),
+        respiratoryRate: String(record.respiratoryRate),
         oxygenSaturation: String(record.oxygenSaturation),
         temperature: String(record.temperature),
         ecg: record.ecg,
@@ -87,6 +89,7 @@ export default function VitalEditPage({
       !formData.bloodPressureHigh ||
       !formData.bloodPressureLow ||
       !formData.pulse ||
+      !formData.respiratoryRate ||
       !formData.oxygenSaturation ||
       !formData.temperature
     ) {
@@ -125,6 +128,12 @@ export default function VitalEditPage({
       <div className="p-4 md:p-6">
         {/* ヘッダー */}
         <div className="mb-6">
+          <button
+            onClick={() => router.push('/vitals')}
+            className="mb-3 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+          >
+            ← 一覧に戻る
+          </button>
           <h1 className="text-2xl font-bold text-gray-800">バイタル編集</h1>
           <p className="text-sm text-gray-600 mt-1">
             バイタルデータを編集します
@@ -220,6 +229,21 @@ export default function VitalEditPage({
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="例: 72"
+              />
+            </div>
+
+            {/* 呼吸数 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                呼吸数 (回/分) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="respiratoryRate"
+                value={formData.respiratoryRate}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="例: 16"
               />
             </div>
 

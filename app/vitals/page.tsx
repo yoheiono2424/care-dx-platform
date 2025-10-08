@@ -4,12 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
-import {
-  mockVitalRecords,
-  availablePatientNames,
-  availableFloors,
-} from '@/data/mockVitals';
-import type { VitalRecord } from '@/data/mockVitals';
+import { mockVitalRecords } from '@/data/mockVitals';
 
 export default function VitalsPage() {
   const router = useRouter();
@@ -67,6 +62,7 @@ export default function VitalsPage() {
       '利用者名',
       '血圧',
       '脈拍',
+      '呼吸数',
       '酸素飽和度',
       '体温',
       '心電図',
@@ -82,6 +78,7 @@ export default function VitalsPage() {
           record.patientName,
           record.bloodPressure,
           record.pulse,
+          record.respiratoryRate,
           record.oxygenSaturation,
           record.temperature,
           record.ecg,
@@ -252,6 +249,14 @@ export default function VitalsPage() {
                       {record.pulse}bpm
                     </span>
                   </div>
+                  <div className="bg-purple-50 p-3 rounded">
+                    <span className="text-xs text-gray-600 block mb-1">
+                      呼吸数
+                    </span>
+                    <span className="text-sm font-bold text-gray-900">
+                      {record.respiratoryRate}回/分
+                    </span>
+                  </div>
                   <div className="bg-cyan-50 p-3 rounded">
                     <span className="text-xs text-gray-600 block mb-1">
                       酸素飽和度
@@ -314,31 +319,34 @@ export default function VitalsPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   登録日時
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   利用者名
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   血圧
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   脈拍
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  呼吸数
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   酸素飽和度
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   体温
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   心電図
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   身長
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   体重
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   編集
                 </th>
               </tr>
@@ -349,22 +357,25 @@ export default function VitalsPage() {
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                     {formatDateTime(record.registeredAt)}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                     {record.patientName}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                     {record.bloodPressure}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                     {record.pulse}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                    {record.respiratoryRate}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                     {record.oxygenSaturation}%
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                     {record.temperature}°C
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
                         record.ecg === '正常'
@@ -375,13 +386,13 @@ export default function VitalsPage() {
                       {record.ecg}
                     </span>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                     {record.height}cm
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                     {record.weight}kg
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                     <button
                       onClick={() => handleEdit(record.id)}
                       className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"

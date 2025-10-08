@@ -11,7 +11,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter();
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-60">
       <div className="h-16 px-4 flex items-center justify-between">
         {/* 左側: ハンバーガーメニュー（スマホのみ） + ロゴ */}
         <div className="flex items-center gap-4">

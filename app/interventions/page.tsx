@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
 import { mockInterventionData } from '@/data/mockInterventions';
-import type { InterventionRecord } from '@/data/mockInterventions';
 
 export default function InterventionsPage() {
   const router = useRouter();
@@ -61,6 +60,9 @@ export default function InterventionsPage() {
       '利用者名',
       '介入区分',
       '介入内容',
+      '医師',
+      '医師からの指示内容',
+      '備考',
     ];
 
     const csvContent = [
@@ -75,6 +77,9 @@ export default function InterventionsPage() {
           record.patientName,
           record.interventionType,
           `"${record.interventionContent}"`,
+          record.doctorName,
+          `"${record.doctorInstructions}"`,
+          `"${record.notes}"`,
         ].join(',')
       ),
     ].join('\n');
@@ -95,13 +100,64 @@ export default function InterventionsPage() {
     document.body.removeChild(link);
   };
 
+  // ケアカルテ用CSVダウンロード
+  const handleDownloadCareCarteCSV = () => {
+    const headers = [
+      '居室番号',
+      '記録日時',
+      '開始日時',
+      '終了日時',
+      'スタッフ名',
+      '利用者名',
+      '介入区分',
+      '介入内容',
+      '医師',
+      '医師からの指示内容',
+      '備考',
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...filteredRecords.map((record) =>
+        [
+          record.facilityNumber,
+          record.recordDateTime,
+          record.startDateTime,
+          record.endDateTime,
+          record.staffName,
+          record.patientName,
+          record.interventionType,
+          `"${record.interventionContent}"`,
+          record.doctorName,
+          `"${record.doctorInstructions}"`,
+          `"${record.notes}"`,
+        ].join(',')
+      ),
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute(
+      'download',
+      `ケアカルテ用_介入実績_${new Date().toISOString().split('T')[0]}.csv`
+    );
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <MainLayout>
       <div className="p-4 md:p-6">
         {/* ヘッダー */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">介入実績</h1>
+            <h1 className="text-2xl font-bold text-gray-800">介入実績管理</h1>
           </div>
           <div className="flex gap-2">
             <Button
@@ -111,9 +167,14 @@ export default function InterventionsPage() {
               介入実績作成
             </Button>
             {!isMobile && (
-              <Button variant="primary" onClick={handleDownloadCSV}>
-                CSVダウンロード
-              </Button>
+              <>
+                <Button variant="outline" onClick={handleDownloadCareCarteCSV}>
+                  CSVダウンロード（ケアカルテ用）
+                </Button>
+                <Button variant="primary" onClick={handleDownloadCSV}>
+                  CSVダウンロード
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -233,6 +294,32 @@ export default function InterventionsPage() {
                     {record.interventionContent}
                   </p>
                 </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">医師</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.doctorName || '-'}
+                  </span>
+                </div>
+                {record.doctorInstructions && (
+                  <div className="py-2">
+                    <span className="text-sm text-gray-600 block mb-2">
+                      医師からの指示内容
+                    </span>
+                    <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded">
+                      {record.doctorInstructions}
+                    </p>
+                  </div>
+                )}
+                {record.notes && (
+                  <div className="py-2">
+                    <span className="text-sm text-gray-600 block mb-2">
+                      備考
+                    </span>
+                    <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded">
+                      {record.notes}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -275,6 +362,15 @@ export default function InterventionsPage() {
                   介入内容
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  医師
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  医師からの指示内容
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  備考
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   編集
                 </th>
               </tr>
@@ -305,6 +401,15 @@ export default function InterventionsPage() {
                   </td>
                   <td className="px-4 py-3 text-sm text-center text-gray-900">
                     {record.interventionContent}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
+                    {record.doctorName || '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900">
+                    {record.doctorInstructions || '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900">
+                    {record.notes || '-'}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                     <button

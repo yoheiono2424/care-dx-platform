@@ -1,15 +1,11 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
 import { mockRoomEntryData } from '@/data/mockRoomEntries';
-import type { RoomEntryRecord } from '@/data/mockRoomEntries';
 
 export default function RoomEntriesPage() {
-  const router = useRouter();
-
   // フィルター状態
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
