@@ -16,6 +16,12 @@ export interface VitalRecord {
   weight: number; // 体重 (kg)
 }
 
+// 固定シード値を使った疑似乱数生成関数（SSR対応）
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
 // 利用者名リスト
 const patientNames = [
   '田中 太郎',
@@ -47,6 +53,7 @@ const floors = ['1F', '2F', '3F', '4F'];
 const generateVitalRecords = (): VitalRecord[] => {
   const records: VitalRecord[] = [];
   let id = 1;
+  let seed = 12345; // 固定シード値
 
   // 各利用者について、過去2週間のバイタルデータを生成
   patientNames.forEach((name, index) => {
@@ -61,7 +68,7 @@ const generateVitalRecords = (): VitalRecord[] => {
 
         // 時刻設定（朝7時、昼12時、夜19時）
         const hours = timeIndex === 0 ? 7 : timeIndex === 1 ? 12 : 19;
-        date.setHours(hours, Math.floor(Math.random() * 60), 0, 0);
+        date.setHours(hours, Math.floor(seededRandom(seed++) * 60), 0, 0);
 
         // バイタル値の生成（個人差を反映）
         const baseBloodPressureHigh = 110 + index * 2;
@@ -72,20 +79,22 @@ const generateVitalRecords = (): VitalRecord[] => {
 
         // ランダムな変動を追加
         const bloodPressureHigh =
-          baseBloodPressureHigh + Math.floor(Math.random() * 20) - 10;
+          baseBloodPressureHigh + Math.floor(seededRandom(seed++) * 20) - 10;
         const bloodPressureLow =
-          baseBloodPressureLow + Math.floor(Math.random() * 15) - 7;
-        const pulse = basePulse + Math.floor(Math.random() * 20) - 10;
-        const respiratoryRate = 15 + Math.floor(Math.random() * 10) - 5; // 呼吸数 10-20回/分
-        const oxygenSaturation = 95 + Math.floor(Math.random() * 5);
+          baseBloodPressureLow + Math.floor(seededRandom(seed++) * 15) - 7;
+        const pulse = basePulse + Math.floor(seededRandom(seed++) * 20) - 10;
+        const respiratoryRate = 15 + Math.floor(seededRandom(seed++) * 10) - 5; // 呼吸数 10-20回/分
+        const oxygenSaturation = 95 + Math.floor(seededRandom(seed++) * 5);
         const temperature =
-          Math.round((baseTemperature + Math.random() * 1.0 - 0.5) * 10) / 10;
+          Math.round(
+            (baseTemperature + seededRandom(seed++) * 1.0 - 0.5) * 10
+          ) / 10;
         const height = 150 + index * 2; // 身長は固定
         const weight =
-          Math.round((baseWeight + Math.random() * 4 - 2) * 10) / 10;
+          Math.round((baseWeight + seededRandom(seed++) * 4 - 2) * 10) / 10;
 
         // 心電図は95%の確率で正常
-        const ecg = Math.random() > 0.05 ? '正常' : '異常';
+        const ecg = seededRandom(seed++) > 0.05 ? '正常' : '異常';
 
         records.push({
           id: String(id),

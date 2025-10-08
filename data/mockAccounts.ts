@@ -50,31 +50,25 @@ export const mockAccountData: AccountRecord[] = Array.from(
       seededRandom(seed + 6) * qualificationsOptions.length
     );
 
-    // 施設（1-2個をランダムに選択）
+    // 施設（1-2個を選択）
     const facilityCount = Math.floor(seededRandom(seed + 3) * 2) + 1; // 1 or 2
     const selectedFacilities: string[] = [];
-    const facilityIndices = new Set<number>();
-    while (facilityIndices.size < facilityCount) {
-      const idx = Math.floor(
-        seededRandom(seed + 3 + facilityIndices.size * 10) * facilities.length
-      );
-      facilityIndices.add(idx);
-    }
-    Array.from(facilityIndices).forEach((idx) =>
-      selectedFacilities.push(facilities[idx])
+    const facilityStartIndex = Math.floor(
+      seededRandom(seed + 10) * facilities.length
     );
+    for (let j = 0; j < facilityCount; j++) {
+      const idx = (facilityStartIndex + j) % facilities.length;
+      selectedFacilities.push(facilities[idx]);
+    }
 
-    // フロア（1-2個をランダムに選択）
+    // フロア（1-2個を選択）
     const floorCount = Math.floor(seededRandom(seed + 4) * 2) + 1; // 1 or 2
     const selectedFloors: string[] = [];
-    const floorIndices = new Set<number>();
-    while (floorIndices.size < floorCount) {
-      const idx = Math.floor(
-        seededRandom(seed + 4 + floorIndices.size * 10) * floors.length
-      );
-      floorIndices.add(idx);
+    const floorStartIndex = Math.floor(seededRandom(seed + 11) * floors.length);
+    for (let j = 0; j < floorCount; j++) {
+      const idx = (floorStartIndex + j) % floors.length;
+      selectedFloors.push(floors[idx]);
     }
-    Array.from(floorIndices).forEach((idx) => selectedFloors.push(floors[idx]));
 
     // スタッフID: 000001から順に
     const staffId = String(i + 1).padStart(6, '0');
