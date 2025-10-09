@@ -11,6 +11,7 @@ export default function UrineTestsPage() {
   const [endDate, setEndDate] = useState('');
   const [selectedPatient, setSelectedPatient] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // デフォルトは新しい順
 
   // CSVアップロード用のref
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -24,9 +25,9 @@ export default function UrineTestsPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // フィルタリングされたデータ
-  const filteredRecords = useMemo(() => {
-    return mockUrineTestData.filter((record) => {
+  // フィルタリングとソートされたデータ
+  const sortedRecords = useMemo(() => {
+    const filtered = mockUrineTestData.filter((record) => {
       // 期間フィルター
       if (startDate) {
         const recordDate = new Date(record.registeredAt);
@@ -47,7 +48,14 @@ export default function UrineTestsPage() {
 
       return true;
     });
-  }, [startDate, endDate, selectedPatient]);
+
+    // ソート処理
+    return [...filtered].sort((a, b) => {
+      const dateA = new Date(a.registeredAt).getTime();
+      const dateB = new Date(b.registeredAt).getTime();
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+  }, [startDate, endDate, selectedPatient, sortOrder]);
 
   // 上部スクロールバーの幅をテーブルと同期
   useEffect(() => {
@@ -65,7 +73,7 @@ export default function UrineTestsPage() {
     syncScrollbarWidth();
     window.addEventListener('resize', syncScrollbarWidth);
     return () => window.removeEventListener('resize', syncScrollbarWidth);
-  }, [filteredRecords]);
+  }, [sortedRecords]);
 
   // CSVアップロード
   const handleUploadClick = () => {
@@ -113,7 +121,7 @@ export default function UrineTestsPage() {
 
     const csvContent = [
       headers.join(','),
-      ...filteredRecords.map((record) =>
+      ...sortedRecords.map((record) =>
         [
           new Date(record.registeredAt).toLocaleString('ja-JP'),
           record.patientName,
@@ -244,16 +252,24 @@ export default function UrineTestsPage() {
           </div>
         </div>
 
-        {/* データ件数表示 */}
-        <div className="mb-4">
+        {/* データ件数表示とソートボタン */}
+        <div className="mb-4 flex items-center gap-3">
+          <button
+            onClick={() =>
+              setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))
+            }
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+          >
+            {sortOrder === 'desc' ? '古い順に表示 ↓' : '新しい順に表示 ↑'}
+          </button>
           <p className="text-sm text-gray-600">
-            {filteredRecords.length}件のデータが見つかりました
+            {sortedRecords.length}件のデータが見つかりました
           </p>
         </div>
 
         {/* スマホ表示: カード形式 */}
         <div className="md:hidden space-y-4">
-          {filteredRecords.map((record) => (
+          {sortedRecords.map((record) => (
             <div key={record.id} className="bg-white rounded-lg shadow p-4">
               {/* ヘッダー */}
               <div className="mb-4 pb-4 border-b border-gray-200">
@@ -440,7 +456,7 @@ export default function UrineTestsPage() {
           ))}
 
           {/* データなしメッセージ */}
-          {filteredRecords.length === 0 && (
+          {sortedRecords.length === 0 && (
             <div className="text-center py-12 bg-white rounded-lg shadow">
               <p className="text-gray-500">データがありません</p>
             </div>
@@ -552,7 +568,7 @@ export default function UrineTestsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredRecords.map((record) => (
+                {sortedRecords.map((record) => (
                   <tr key={record.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
                       {formatDateTime(record.registeredAt)}
@@ -623,7 +639,7 @@ export default function UrineTestsPage() {
             </table>
 
             {/* データなしメッセージ */}
-            {filteredRecords.length === 0 && (
+            {sortedRecords.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500">データがありません</p>
               </div>
