@@ -38,7 +38,7 @@ export default function DoctorEditPage() {
           >
             ←
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">医師＞編集</h1>
+          <h1 className="text-2xl font-bold text-gray-800">医師編集</h1>
         </div>
 
         {/* フォーム */}

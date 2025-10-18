@@ -34,10 +34,14 @@ const menuItems: MenuItem[] = [
     icon: 'care',
     href: '/care-managers',
   },
-  { id: 'facility', label: '施設', icon: 'facility', href: '/facilities' },
-  { id: 'floor', label: 'フロア', icon: 'floor', href: '/floors' },
+  {
+    id: 'facilities-floors',
+    label: '施設・フロア',
+    icon: 'facility',
+    href: '/facilities-floors',
+  },
   { id: 'room', label: '部屋番号', icon: 'room', href: '/rooms' },
-  { id: 'staff', label: 'アカウント管理', icon: 'staff', href: '/accounts' },
+  { id: 'staff', label: 'スタッフ', icon: 'staff', href: '/accounts' },
   { id: 'settings', label: '設定', icon: 'settings', href: '/settings' },
 ];
 

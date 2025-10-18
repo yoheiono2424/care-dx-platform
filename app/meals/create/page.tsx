@@ -1,344 +1,518 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
-import { mockMealData } from '@/data/mockMeals';
+import { mockPatientData } from '@/data/mockPatients';
+
+interface MealInput {
+  mealContentPattern: string;
+  preMealAmount: number;
+  mealRemainder: number;
+  mainDishIntake: number;
+  sideDishIntake: number;
+  mealIntakeRatio: number;
+  waterAmount: number;
+  waterIntake: number;
+}
 
 export default function MealCreatePage() {
   const router = useRouter();
-  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showPatientSelectModal, setShowPatientSelectModal] = useState(false);
+  const [selectedPatientIds, setSelectedPatientIds] = useState<number[]>([]);
+  const [mealInputs, setMealInputs] = useState<Record<number, MealInput>>({});
 
-  // フィルター状態
-  const [selectedPatient, setSelectedPatient] = useState('');
-  const [selectedFloor, setSelectedFloor] = useState('');
+  // 選択された利用者データを取得
+  const selectedPatients = mockPatientData.filter((patient) =>
+    selectedPatientIds.includes(patient.id)
+  );
 
-  // フィルタリングされたデータ
-  const filteredRecords = useMemo(() => {
-    // 最新の食事記録のみを取得（各利用者の最新1件）
-    const latestRecords = new Map();
-    mockMealData.forEach((record) => {
-      if (!latestRecords.has(record.patientName)) {
-        latestRecords.set(record.patientName, record);
-      }
+  // 利用者選択のトグル
+  const togglePatientSelection = (patientId: number) => {
+    if (selectedPatientIds.includes(patientId)) {
+      setSelectedPatientIds((prev) => prev.filter((id) => id !== patientId));
+      // 選択解除時に入力データも削除
+      setMealInputs((prev) => {
+        const newInputs = { ...prev };
+        delete newInputs[patientId];
+        return newInputs;
+      });
+    } else {
+      setSelectedPatientIds((prev) => [...prev, patientId]);
+      // 初期値を設定
+      setMealInputs((prev) => ({
+        ...prev,
+        [patientId]: {
+          mealContentPattern: '',
+          preMealAmount: 0,
+          mealRemainder: 0,
+          mainDishIntake: 0,
+          sideDishIntake: 0,
+          mealIntakeRatio: 0,
+          waterAmount: 0,
+          waterIntake: 0,
+        },
+      }));
+    }
+  };
+
+  // 利用者選択を確定
+  const handleConfirmSelection = () => {
+    setShowPatientSelectModal(false);
+  };
+
+  // 食事内容パターン変更
+  const handleMealPatternChange = (patientId: number, value: string) => {
+    setMealInputs((prev) => ({
+      ...prev,
+      [patientId]: {
+        ...prev[patientId],
+        mealContentPattern: value,
+      },
+    }));
+  };
+
+  // 食前の食事量変更
+  const handlePreMealAmountChange = (patientId: number, value: number) => {
+    setMealInputs((prev) => {
+      const updated = {
+        ...prev,
+        [patientId]: {
+          ...prev[patientId],
+          preMealAmount: value,
+        },
+      };
+      // 食事摂取割合を自動計算
+      updated[patientId].mealIntakeRatio = calculateMealIntakeRatio(
+        updated[patientId].preMealAmount,
+        updated[patientId].mealRemainder
+      );
+      return updated;
     });
+  };
 
-    return Array.from(latestRecords.values()).filter((record) => {
-      // 利用者名フィルター
-      if (selectedPatient && record.patientName !== selectedPatient) {
-        return false;
+  // 汎用的な入力フィールド変更ハンドラー
+  const handleInputChange = (
+    patientId: number,
+    field: keyof MealInput,
+    value: number
+  ) => {
+    setMealInputs((prev) => {
+      const updated = {
+        ...prev,
+        [patientId]: {
+          ...prev[patientId],
+          [field]: value,
+        },
+      };
+      // 食事残渣量が変更された場合、食事摂取割合を再計算
+      if (field === 'mealRemainder') {
+        updated[patientId].mealIntakeRatio = calculateMealIntakeRatio(
+          updated[patientId].preMealAmount,
+          updated[patientId].mealRemainder
+        );
       }
-
-      // フロアフィルター
-      if (selectedFloor && record.floor !== selectedFloor) {
-        return false;
-      }
-
-      return true;
+      return updated;
     });
-  }, [selectedPatient, selectedFloor]);
+  };
 
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  // 食事摂取割合の自動計算
+  const calculateMealIntakeRatio = (
+    preMealAmount: number,
+    mealRemainder: number
+  ): number => {
+    if (preMealAmount === 0) return 0;
+    return Math.round(((preMealAmount - mealRemainder) / preMealAmount) * 100);
+  };
 
-  // ダミーの利用者リスト
-  const dummyUsers = [
-    { id: '1', name: '田中 太郎' },
-    { id: '2', name: '佐藤 花子' },
-    { id: '3', name: '鈴木 一郎' },
-    { id: '4', name: '高橋 美咲' },
-    { id: '5', name: '渡辺 健太' },
-  ];
-
-  const toggleUserSelection = (userId: string) => {
-    setSelectedUsers((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
+  // 一括登録
+  const handleBulkRegister = () => {
+    // 登録処理（現在はアラート表示のみ）
+    alert(
+      `${selectedPatients.length}件の食事記録を登録しました。\n一覧画面へ遷移します。`
     );
+
+    // 一覧画面へ遷移
+    router.push('/meals');
   };
 
   return (
     <MainLayout>
       <div className="p-4 md:p-6">
         {/* ヘッダー */}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center gap-2">
           <button
             onClick={() => router.push('/meals')}
-            className="mb-3 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+            className="text-gray-600 hover:text-gray-900"
           >
-            ← 一覧に戻る
+            ←
           </button>
           <h1 className="text-2xl font-bold text-gray-800">食事記録作成</h1>
-        </div>
-
-        {/* フィルター */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 利用者名 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                利用者名
-              </label>
-              <input
-                type="text"
-                placeholder="利用者名"
-                value={selectedPatient}
-                onChange={(e) => setSelectedPatient(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            {/* フロア */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                フロア
-              </label>
-              <input
-                type="text"
-                placeholder="フロア"
-                value={selectedFloor}
-                onChange={(e) => setSelectedFloor(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
         </div>
 
         {/* ボタン */}
         <div className="flex gap-3 mb-6">
           <Button
             type="button"
-            variant="outline"
-            onClick={() => setShowBulkModal(true)}
-          >
-            一括登録
-          </Button>
-          <Button
-            type="button"
             variant="secondary"
-            onClick={() => router.push('/patients')}
+            onClick={() => setShowPatientSelectModal(true)}
           >
             利用者追加
           </Button>
+          {selectedPatients.length > 0 && (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleBulkRegister}
+            >
+              一括登録
+            </Button>
+          )}
         </div>
+
+        {/* 選択された利用者がいない場合 */}
+        {selectedPatients.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-lg shadow">
+            <p className="text-gray-500">
+              「利用者追加」ボタンから利用者を選択してください
+            </p>
+          </div>
+        )}
 
         {/* スマホ表示: カード形式 */}
-        <div className="md:hidden space-y-4">
-          {filteredRecords.map((record) => (
-            <div key={record.id} className="bg-white rounded-lg shadow p-4">
-              <div className="mb-4 pb-4 border-b border-gray-200">
-                <h3 className="text-lg font-bold text-gray-900">
-                  {record.patientName}
-                </h3>
-                <p className="text-sm text-gray-600">{record.floor}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  登録日時: {record.registeredAt}
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">
-                    食事内容パターン
-                  </label>
-                  <select
-                    defaultValue={record.mealContentPattern}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">選択してください</option>
-                    <option value="通常食">通常食</option>
-                    <option value="軟菜食">軟菜食</option>
-                    <option value="きざみ食">きざみ食</option>
-                    <option value="ミキサー食">ミキサー食</option>
-                    <option value="治療食">治療食</option>
-                  </select>
+        {selectedPatients.length > 0 && (
+          <div className="md:hidden space-y-4">
+            {selectedPatients.map((patient) => (
+              <div key={patient.id} className="bg-white rounded-lg shadow p-4">
+                <div className="mb-4 pb-4 border-b border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {patient.name}
+                  </h3>
+                  <p className="text-sm text-gray-600">{patient.roomNumber}</p>
                 </div>
 
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">
-                    食前の食事量
-                  </label>
-                  <input
-                    type="number"
-                    defaultValue={record.preMealAmount}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">食事残渣量</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {record.foodResidue}g
-                  </span>
-                </div>
-
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">食事摂取量-主食</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {record.mainDishIntake}%
-                  </span>
-                </div>
-
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">食事摂取量-副食</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {record.sideDishIntake}%
-                  </span>
-                </div>
-
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">食事摂取割合</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {record.intakePercentage}%
-                  </span>
-                </div>
-
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">水分量</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {record.waterAmount}ml
-                  </span>
-                </div>
-
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">水分摂取量</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {record.waterIntake}ml
-                  </span>
-                </div>
-
-                <div className="flex justify-between py-2">
-                  <span className="text-sm text-gray-600">備考</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {record.remarks || '—'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* データなしメッセージ */}
-          {filteredRecords.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-lg shadow">
-              <p className="text-gray-500">データがありません</p>
-            </div>
-          )}
-        </div>
-
-        {/* PC表示: テーブル */}
-        <div className="hidden md:block bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  登録日時
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  利用者名
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  食事内容パターン
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  食前の食事量
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  食事残渣量
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  食事摂取量-主食
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  食事摂取量-副食
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  食事摂取割合
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  水分量
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
-                  水分摂取量
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                  備考
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRecords.map((record) => (
-                <tr key={record.id}>
-                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                    {record.registeredAt}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                    {record.patientName}
-                  </td>
-                  <td className="px-4 py-3 border-r border-gray-200">
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      食事内容パターン
+                    </label>
                     <select
-                      defaultValue={record.mealContentPattern}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                      value={mealInputs[patient.id]?.mealContentPattern || ''}
+                      onChange={(e) =>
+                        handleMealPatternChange(patient.id, e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">選択してください</option>
-                      <option value="通常食">通常食</option>
-                      <option value="軟菜食">軟菜食</option>
-                      <option value="きざみ食">きざみ食</option>
-                      <option value="ミキサー食">ミキサー食</option>
-                      <option value="治療食">治療食</option>
+                      <option value="朝A_(小鉢あり)">朝A_(小鉢あり)</option>
+                      <option value="朝B_(小鉢なし)">朝B_(小鉢なし)</option>
+                      <option value="昼A">昼A</option>
+                      <option value="昼B">昼B</option>
+                      <option value="昼C">昼C</option>
+                      <option value="夕A_(小鉢あり)">夕A_(小鉢あり)</option>
+                      <option value="夕B_(小鉢なし)">夕B_(小鉢なし)</option>
                     </select>
-                  </td>
-                  <td className="px-4 py-3 border-r border-gray-200">
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      食前の食事量（g）
+                    </label>
                     <input
                       type="number"
-                      defaultValue={record.preMealAmount}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                      value={mealInputs[patient.id]?.preMealAmount || 0}
+                      onChange={(e) =>
+                        handlePreMealAmountChange(
+                          patient.id,
+                          Number(e.target.value)
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                    {record.foodResidue}g
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                    {record.mainDishIntake}%
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                    {record.sideDishIntake}%
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                    {record.intakePercentage}%
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                    {record.waterAmount}ml
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
-                    {record.waterIntake}ml
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-gray-900">
-                    {record.remarks || '—'}
-                  </td>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      食事残渣量（g）
+                    </label>
+                    <input
+                      type="number"
+                      value={mealInputs[patient.id]?.mealRemainder || 0}
+                      onChange={(e) =>
+                        handleInputChange(
+                          patient.id,
+                          'mealRemainder',
+                          Number(e.target.value)
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      食事摂取量 (主食)（g）
+                    </label>
+                    <input
+                      type="number"
+                      value={mealInputs[patient.id]?.mainDishIntake || 0}
+                      onChange={(e) =>
+                        handleInputChange(
+                          patient.id,
+                          'mainDishIntake',
+                          Number(e.target.value)
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      食事摂取量 (副食)（g）
+                    </label>
+                    <input
+                      type="number"
+                      value={mealInputs[patient.id]?.sideDishIntake || 0}
+                      onChange={(e) =>
+                        handleInputChange(
+                          patient.id,
+                          'sideDishIntake',
+                          Number(e.target.value)
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      食事摂取割合（%）
+                    </label>
+                    <input
+                      type="number"
+                      value={mealInputs[patient.id]?.mealIntakeRatio || 0}
+                      readOnly
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      水分量（ml）
+                    </label>
+                    <input
+                      type="number"
+                      value={mealInputs[patient.id]?.waterAmount || 0}
+                      onChange={(e) =>
+                        handleInputChange(
+                          patient.id,
+                          'waterAmount',
+                          Number(e.target.value)
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      水分摂取量（ml）
+                    </label>
+                    <input
+                      type="number"
+                      value={mealInputs[patient.id]?.waterIntake || 0}
+                      onChange={(e) =>
+                        handleInputChange(
+                          patient.id,
+                          'waterIntake',
+                          Number(e.target.value)
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* PC表示: テーブル */}
+        {selectedPatients.length > 0 && (
+          <div className="hidden md:block bg-white rounded-lg shadow overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                    居室番号
+                  </th>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                    利用者名
+                  </th>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                    食事内容パターン
+                  </th>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                    食前の食事量（g）
+                  </th>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                    食事残渣量（g）
+                  </th>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                    食事摂取量(主食)（g）
+                  </th>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                    食事摂取量(副食)（g）
+                  </th>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                    食事摂取割合（%）
+                  </th>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase border-r border-gray-200">
+                    水分量（ml）
+                  </th>
+                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                    水分摂取量（ml）
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {selectedPatients.map((patient) => (
+                  <tr key={patient.id}>
+                    <td className="px-2 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                      {patient.roomNumber}
+                    </td>
+                    <td className="px-2 py-3 text-sm text-center text-gray-900 border-r border-gray-200">
+                      {patient.name}
+                    </td>
+                    <td className="px-2 py-3 border-r border-gray-200">
+                      <select
+                        value={mealInputs[patient.id]?.mealContentPattern || ''}
+                        onChange={(e) =>
+                          handleMealPatternChange(patient.id, e.target.value)
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                      >
+                        <option value="">選択してください</option>
+                        <option value="朝A_(小鉢あり)">朝A_(小鉢あり)</option>
+                        <option value="朝B_(小鉢なし)">朝B_(小鉢なし)</option>
+                        <option value="昼A">昼A</option>
+                        <option value="昼B">昼B</option>
+                        <option value="昼C">昼C</option>
+                        <option value="夕A_(小鉢あり)">夕A_(小鉢あり)</option>
+                        <option value="夕B_(小鉢なし)">夕B_(小鉢なし)</option>
+                      </select>
+                    </td>
+                    <td className="px-2 py-3 border-r border-gray-200">
+                      <input
+                        type="number"
+                        value={mealInputs[patient.id]?.preMealAmount || 0}
+                        onChange={(e) =>
+                          handlePreMealAmountChange(
+                            patient.id,
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                      />
+                    </td>
+                    <td className="px-2 py-3 border-r border-gray-200">
+                      <input
+                        type="number"
+                        value={mealInputs[patient.id]?.mealRemainder || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            patient.id,
+                            'mealRemainder',
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                      />
+                    </td>
+                    <td className="px-2 py-3 border-r border-gray-200">
+                      <input
+                        type="number"
+                        value={mealInputs[patient.id]?.mainDishIntake || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            patient.id,
+                            'mainDishIntake',
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                      />
+                    </td>
+                    <td className="px-2 py-3 border-r border-gray-200">
+                      <input
+                        type="number"
+                        value={mealInputs[patient.id]?.sideDishIntake || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            patient.id,
+                            'sideDishIntake',
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                      />
+                    </td>
+                    <td className="px-2 py-3 border-r border-gray-200">
+                      <input
+                        type="number"
+                        value={mealInputs[patient.id]?.mealIntakeRatio || 0}
+                        readOnly
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm bg-gray-100 cursor-not-allowed"
+                      />
+                    </td>
+                    <td className="px-2 py-3 border-r border-gray-200">
+                      <input
+                        type="number"
+                        value={mealInputs[patient.id]?.waterAmount || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            patient.id,
+                            'waterAmount',
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                      />
+                    </td>
+                    <td className="px-2 py-3">
+                      <input
+                        type="number"
+                        value={mealInputs[patient.id]?.waterIntake || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            patient.id,
+                            'waterIntake',
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-          {/* データなしメッセージ */}
-          {filteredRecords.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">データがありません</p>
-            </div>
-          )}
-        </div>
-
-        {/* 一括登録モーダル */}
-        {showBulkModal && (
+        {/* 利用者選択モーダル */}
+        {showPatientSelectModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col">
               {/* ヘッダー */}
               <div className="flex justify-between items-center p-4 border-b">
                 <h2 className="text-lg font-semibold text-gray-900">
-                  一括登録
+                  利用者選択
                 </h2>
                 <button
-                  onClick={() => setShowBulkModal(false)}
+                  onClick={() => setShowPatientSelectModal(false)}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <svg
@@ -356,30 +530,39 @@ export default function MealCreatePage() {
               </div>
 
               {/* コンテンツ */}
-              <div className="p-6 space-y-4">
-                {/* 利用者リスト */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    利用者を選択
-                  </label>
-                  <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-md p-3">
-                    {dummyUsers.map((user) => (
-                      <label
-                        key={user.id}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedUsers.includes(user.id)}
-                          onChange={() => toggleUserSelection(user.id)}
-                          className="w-4 h-4"
-                        />
-                        <span className="text-sm text-gray-900">
-                          {user.name}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+              <div className="p-6 overflow-y-auto flex-1">
+                <div className="space-y-2">
+                  {mockPatientData.map((patient) => (
+                    <label
+                      key={patient.id}
+                      className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-3 rounded border border-gray-200"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedPatientIds.includes(patient.id)}
+                        onChange={() => togglePatientSelection(patient.id)}
+                        className="w-5 h-5"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-900">
+                            {patient.name}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {patient.roomNumber}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-gray-600">
+                            {patient.gender} / {patient.age}歳
+                          </span>
+                          <span className="text-xs text-gray-600">
+                            {patient.status}
+                          </span>
+                        </div>
+                      </div>
+                    </label>
+                  ))}
                 </div>
               </div>
 
@@ -388,16 +571,16 @@ export default function MealCreatePage() {
                 <Button
                   variant="outline"
                   fullWidth
-                  onClick={() => setShowBulkModal(false)}
+                  onClick={() => setShowPatientSelectModal(false)}
                 >
-                  一括選択追加
+                  キャンセル
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="primary"
                   fullWidth
-                  onClick={() => setShowBulkModal(false)}
+                  onClick={handleConfirmSelection}
                 >
-                  一括削除
+                  選択を確定（{selectedPatientIds.length}名）
                 </Button>
               </div>
             </div>

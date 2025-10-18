@@ -60,19 +60,31 @@ export default function UrineTestsPage() {
   // 上部スクロールバーの幅をテーブルと同期
   useEffect(() => {
     const syncScrollbarWidth = () => {
-      const tableContainer = document.getElementById('table-container');
-      const scrollbarContent = document.getElementById('scrollbar-content');
-      if (tableContainer && scrollbarContent) {
+      const topScrollbar = document.getElementById('urine-top-scrollbar');
+      const tableContainer = document.getElementById('urine-table-container');
+      const scrollbarContent = document.getElementById(
+        'urine-scrollbar-content'
+      );
+
+      if (tableContainer && scrollbarContent && topScrollbar) {
         const table = tableContainer.querySelector('table');
         if (table) {
-          scrollbarContent.style.width = `${table.scrollWidth}px`;
+          const tableWidth = table.scrollWidth;
+          scrollbarContent.style.width = `${tableWidth}px`;
         }
       }
     };
 
-    syncScrollbarWidth();
+    // DOMが完全にレンダリングされるまで少し待つ
+    const timer = setTimeout(() => {
+      syncScrollbarWidth();
+    }, 100);
+
     window.addEventListener('resize', syncScrollbarWidth);
-    return () => window.removeEventListener('resize', syncScrollbarWidth);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', syncScrollbarWidth);
+    };
   }, [sortedRecords]);
 
   // CSVアップロード
@@ -463,188 +475,573 @@ export default function UrineTestsPage() {
           )}
         </div>
 
-        {/* PC表示: テーブル */}
-        <div className="hidden md:block bg-white rounded-lg shadow">
-          {/* 横スクロールバー（上部） */}
-          <div
-            id="top-scrollbar"
-            className="overflow-x-auto overflow-y-hidden"
-            onScroll={(e) => {
-              const target = e.target as HTMLDivElement;
-              const tableContainer = document.getElementById('table-container');
-              if (tableContainer) {
-                tableContainer.scrollLeft = target.scrollLeft;
-              }
-            }}
-          >
-            <div id="scrollbar-content" style={{ height: '20px' }}></div>
-          </div>
+        {/* PC表示: テーブル（2分割構造） */}
+        <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+          <div className="flex" style={{ minWidth: 0 }}>
+            {/* 左側：固定列テーブル */}
+            <div className="flex-shrink-0 flex flex-col">
+              {/* 上部スペーサー（右側のスクロールバーと高さを合わせる） */}
+              <div style={{ height: '20px' }}></div>
 
-          {/* テーブルコンテナ */}
-          <div
-            id="table-container"
-            className="overflow-x-auto"
-            onScroll={(e) => {
-              const target = e.target as HTMLDivElement;
-              const topScrollbar = document.getElementById('top-scrollbar');
-              if (topScrollbar) {
-                topScrollbar.scrollLeft = target.scrollLeft;
-              }
-            }}
-            onWheel={(e) => {
-              if (e.shiftKey) {
-                e.preventDefault();
-                const target = e.currentTarget as HTMLDivElement;
-                target.scrollLeft += e.deltaY;
-              }
-            }}
-          >
-            <table className="min-w-full divide-y divide-gray-200 border-collapse">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
-                    登録日時
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
-                    利用者名
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-blue-50 border-r border-gray-200">
-                    白血球
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-blue-50 border-r border-gray-200">
-                    ウロビリノーゲン
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-blue-50 border-r border-gray-200">
-                    潜血
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-blue-50 border-r border-gray-200">
-                    ビリルビン
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-blue-50 border-r border-gray-200">
-                    尿糖
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-blue-50 border-r border-gray-200">
-                    アルブミン
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-blue-50 border-r border-gray-200">
-                    尿蛋白
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-blue-50 border-r border-gray-200">
-                    亜硝酸塩
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-blue-50 border-r border-gray-200">
-                    尿酸
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    脂肪燃焼
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    糖質
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    野菜
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    水分
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    塩分
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    ビタミンC
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    マグネシウム
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    カルシウム
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    酸化ストレス
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-green-50 border-r border-gray-200">
-                    亜鉛
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {formatDateTime(record.registeredAt)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-medium text-gray-900 border-r border-gray-200">
-                      {record.patientName}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {record.whiteBloodCells}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {record.urobilinogen}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {record.occultBlood}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {record.bilirubin}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {record.glucose}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {record.albuminMainDish}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {record.protein}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {record.nitrite}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                      {record.uricAcid}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.fatBurningScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.carbScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.vegetableScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.waterScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.saltScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.vitaminCScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.magnesiumScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.calciumScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.oxidativeStressScore}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-200">
-                      {record.zincScore}
-                    </td>
+              <table
+                className="border-collapse text-xs"
+                style={{ tableLayout: 'fixed' }}
+              >
+                <thead className="sticky top-0 z-10">
+                  <tr
+                    className="bg-gray-100 border-b border-gray-300"
+                    style={{ height: '40px', boxSizing: 'border-box' }}
+                  >
+                    <th
+                      className="bg-gray-100 px-4 text-center font-semibold text-gray-700 border-r border-gray-300 whitespace-nowrap"
+                      style={{
+                        width: '150px',
+                        height: '40px',
+                        lineHeight: '1.2',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      登録日時
+                    </th>
+                    <th
+                      className="bg-gray-100 px-4 text-center font-semibold text-gray-700 border-r-2 border-gray-400 whitespace-nowrap"
+                      style={{
+                        width: '100px',
+                        height: '40px',
+                        lineHeight: '1.2',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      利用者名
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {sortedRecords.map((record, idx) => {
+                    const rowBgColor =
+                      idx % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                    return (
+                      <tr
+                        key={record.id}
+                        className={`border-b border-gray-200 ${rowBgColor}`}
+                        style={{ height: '32px', boxSizing: 'border-box' }}
+                      >
+                        <td
+                          className="px-4 text-center border-r border-gray-300 whitespace-nowrap text-sm"
+                          style={{
+                            width: '150px',
+                            height: '32px',
+                            lineHeight: '1.2',
+                            boxSizing: 'border-box',
+                          }}
+                        >
+                          {formatDateTime(record.registeredAt)}
+                        </td>
+                        <td
+                          className="px-4 text-center font-medium border-r-2 border-gray-400 whitespace-nowrap text-sm"
+                          style={{
+                            width: '100px',
+                            height: '32px',
+                            lineHeight: '1.2',
+                            boxSizing: 'border-box',
+                          }}
+                        >
+                          {record.patientName}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-            {/* データなしメッセージ */}
-            {sortedRecords.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">データがありません</p>
+            {/* 右側：上部スクロールバー + スクロール列テーブル */}
+            <div className="flex-1 flex flex-col" style={{ minWidth: 0 }}>
+              {/* 上部スクロールバー */}
+              <div
+                id="urine-top-scrollbar"
+                className="overflow-x-auto overflow-y-hidden bg-white"
+                style={{ height: '20px', flexShrink: 0 }}
+                onScroll={(e) => {
+                  const target = e.target as HTMLDivElement;
+                  const tableContainer = document.getElementById(
+                    'urine-table-container'
+                  );
+                  if (tableContainer) {
+                    tableContainer.scrollLeft = target.scrollLeft;
+                  }
+                }}
+              >
+                <div
+                  id="urine-scrollbar-content"
+                  style={{ height: '20px' }}
+                ></div>
               </div>
-            )}
+
+              {/* スクロール列テーブル */}
+              <div
+                id="urine-table-container"
+                className="overflow-x-auto"
+                style={{
+                  scrollbarWidth: 'none', // Firefox
+                  msOverflowStyle: 'none', // IE, Edge
+                }}
+                onScroll={(e) => {
+                  const target = e.target as HTMLDivElement;
+                  const topScrollbar = document.getElementById(
+                    'urine-top-scrollbar'
+                  );
+                  if (topScrollbar) {
+                    topScrollbar.scrollLeft = target.scrollLeft;
+                  }
+                }}
+              >
+                <style jsx>{`
+                  #urine-table-container::-webkit-scrollbar {
+                    display: none;
+                  }
+                `}</style>
+                <table
+                  className="border-collapse text-xs"
+                  style={{ tableLayout: 'auto' }}
+                >
+                  <thead className="sticky top-0 z-10">
+                    <tr
+                      className="bg-gray-100 border-b border-gray-300"
+                      style={{ height: '40px', boxSizing: 'border-box' }}
+                    >
+                      {/* 基本検査項目 */}
+                      <th
+                        className="bg-blue-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        白血球
+                      </th>
+                      <th
+                        className="bg-blue-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '120px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        ウロビリノーゲン
+                      </th>
+                      <th
+                        className="bg-blue-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        潜血
+                      </th>
+                      <th
+                        className="bg-blue-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        ビリルビン
+                      </th>
+                      <th
+                        className="bg-blue-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        尿糖
+                      </th>
+                      <th
+                        className="bg-blue-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        アルブミン
+                      </th>
+                      <th
+                        className="bg-blue-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        尿蛋白
+                      </th>
+                      <th
+                        className="bg-blue-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        亜硝酸塩
+                      </th>
+                      <th
+                        className="bg-blue-50 px-4 text-center font-semibold text-gray-700 border-r-2 border-gray-300 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        尿酸
+                      </th>
+
+                      {/* スコア項目 */}
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        脂肪燃焼
+                      </th>
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        糖質
+                      </th>
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        野菜
+                      </th>
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        水分
+                      </th>
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        塩分
+                      </th>
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        ビタミンC
+                      </th>
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '120px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        マグネシウム
+                      </th>
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        カルシウム
+                      </th>
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '120px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        酸化ストレス
+                      </th>
+                      <th
+                        className="bg-green-50 px-4 text-center font-semibold text-gray-700 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        亜鉛
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedRecords.map((record, idx) => {
+                      const rowBgColor =
+                        idx % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                      return (
+                        <tr
+                          key={record.id}
+                          className={`border-b border-gray-200 ${rowBgColor}`}
+                          style={{ height: '32px', boxSizing: 'border-box' }}
+                        >
+                          {/* 基本検査項目 */}
+                          <td
+                            className="px-4 text-center border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.whiteBloodCells}
+                          </td>
+                          <td
+                            className="px-4 text-center border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.urobilinogen}
+                          </td>
+                          <td
+                            className="px-4 text-center border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.occultBlood}
+                          </td>
+                          <td
+                            className="px-4 text-center border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.bilirubin}
+                          </td>
+                          <td
+                            className="px-4 text-center border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.glucose}
+                          </td>
+                          <td
+                            className="px-4 text-center border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.albuminMainDish}
+                          </td>
+                          <td
+                            className="px-4 text-center border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.protein}
+                          </td>
+                          <td
+                            className="px-4 text-center border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.nitrite}
+                          </td>
+                          <td
+                            className="px-4 text-center border-r-2 border-gray-300 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.uricAcid}
+                          </td>
+
+                          {/* スコア項目 */}
+                          <td
+                            className="px-4 text-center font-semibold border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.fatBurningScore}
+                          </td>
+                          <td
+                            className="px-4 text-center font-semibold border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.carbScore}
+                          </td>
+                          <td
+                            className="px-4 text-center font-semibold border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.vegetableScore}
+                          </td>
+                          <td
+                            className="px-4 text-center font-semibold border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.waterScore}
+                          </td>
+                          <td
+                            className="px-4 text-center font-semibold border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.saltScore}
+                          </td>
+                          <td
+                            className="px-4 text-center font-semibold border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.vitaminCScore}
+                          </td>
+                          <td
+                            className="px-4 text-center font-semibold border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.magnesiumScore}
+                          </td>
+                          <td
+                            className="px-4 text-center font-semibold border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.calciumScore}
+                          </td>
+                          <td
+                            className="px-4 text-center font-semibold border-r border-gray-200 whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.oxidativeStressScore}
+                          </td>
+                          <td
+                            className="px-4 text-center font-semibold whitespace-nowrap text-sm"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {record.zincScore}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
+
+          {/* データなしメッセージ */}
+          {sortedRecords.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">データがありません</p>
+            </div>
+          )}
         </div>
       </div>
     </MainLayout>

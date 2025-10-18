@@ -159,7 +159,13 @@ export default function InterventionsPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-800">介入実績管理</h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => router.push('/monthly-settlement')}
+            >
+              月次決算
+            </Button>
             <Button
               variant="secondary"
               onClick={() => router.push('/interventions/create')}

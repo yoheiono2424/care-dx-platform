@@ -34,12 +34,12 @@ export default function MealEditPage() {
     <MainLayout>
       <div className="p-4 md:p-6">
         {/* ヘッダー */}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center gap-2">
           <button
             onClick={() => router.push('/meals')}
-            className="mb-3 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+            className="text-gray-600 hover:text-gray-900"
           >
-            ← 一覧に戻る
+            ←
           </button>
           <h1 className="text-2xl font-bold text-gray-800">食事記録編集</h1>
         </div>

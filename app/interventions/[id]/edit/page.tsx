@@ -34,7 +34,13 @@ export default function InterventionEditPage() {
     <MainLayout>
       <div className="p-4 md:p-6">
         {/* ヘッダー */}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center gap-2">
+          <button
+            onClick={() => router.push('/interventions')}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            ←
+          </button>
           <h1 className="text-2xl font-bold text-gray-800">介入実績編集</h1>
         </div>
 

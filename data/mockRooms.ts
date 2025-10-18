@@ -1,3 +1,5 @@
+import { mockFacilityData } from './mockFacilities';
+
 // 疑似乱数生成関数
 function seededRandom(seed: number): number {
   const x = Math.sin(seed++) * 10000;
@@ -7,19 +9,24 @@ function seededRandom(seed: number): number {
 export interface RoomRecord {
   id: number;
   roomNumber: string; // 部屋番号
+  facilityId: number; // 施設ID
   facility: string; // 施設名
   status: string; // 利用ステータス
   createdAt: string; // 作成日
 }
 
-const facilities = ['ケアホーム熊本', 'ケアホーム福岡', 'ケアホーム鹿児島'];
 const statuses = ['利用中', '休止中'];
 
 // モックデータ生成
 export const mockRoomData: RoomRecord[] = Array.from({ length: 12 }, (_, i) => {
   const seed = i * 100;
-  const facilityIndex = Math.floor(seededRandom(seed + 1) * facilities.length);
+  const facilityIndex = Math.floor(
+    seededRandom(seed + 1) * mockFacilityData.length
+  );
   const statusIndex = Math.floor(seededRandom(seed + 2) * statuses.length);
+
+  // 施設IDと施設名を取得
+  const facility = mockFacilityData[facilityIndex];
 
   // 部屋番号: 101-112
   const roomNumber = (101 + i).toString();
@@ -32,7 +39,8 @@ export const mockRoomData: RoomRecord[] = Array.from({ length: 12 }, (_, i) => {
   return {
     id: i + 1,
     roomNumber,
-    facility: facilities[facilityIndex],
+    facilityId: facility.id,
+    facility: facility.name,
     status: statuses[statusIndex],
     createdAt,
   };

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
+import { mockFacilityData } from '@/data/mockFacilities';
 
 export default function RoomEditPage() {
   const router = useRouter();
@@ -11,13 +12,26 @@ export default function RoomEditPage() {
   // フォームデータ（編集時は既存データで初期化）
   const [formData, setFormData] = useState({
     roomNumber: '101',
-    facility: 'ケアホーム熊本',
+    facilityId: 1, // ケアホーム熊本のID
     status: '利用中',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // バリデーション
+    if (formData.facilityId === 0) {
+      alert('施設を選択してください');
+      return;
+    }
+
+    if (formData.roomNumber.trim() === '') {
+      alert('部屋番号を入力してください');
+      return;
+    }
+
     // 保存処理（今後実装）
+    console.log('保存データ:', formData);
     router.push('/rooms');
   };
 
@@ -32,7 +46,7 @@ export default function RoomEditPage() {
           >
             ←
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">部屋番号＞編集</h1>
+          <h1 className="text-2xl font-bold text-gray-800">部屋番号編集</h1>
         </div>
 
         {/* フォーム */}
@@ -56,19 +70,28 @@ export default function RoomEditPage() {
               />
             </div>
 
-            {/* 施設名 */}
+            {/* 施設 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                施設名
+                施設
               </label>
-              <input
-                type="text"
-                value={formData.facility}
+              <select
+                value={formData.facilityId}
                 onChange={(e) =>
-                  setFormData({ ...formData, facility: e.target.value })
+                  setFormData({
+                    ...formData,
+                    facilityId: Number(e.target.value),
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              >
+                <option value={0}>施設を選択してください</option>
+                {mockFacilityData.map((facility) => (
+                  <option key={facility.id} value={facility.id}>
+                    {facility.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* 利用ステータス */}

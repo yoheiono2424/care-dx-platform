@@ -38,7 +38,7 @@ export default function CareManagerEditPage() {
           >
             ←
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">ケアマネ＞編集</h1>
+          <h1 className="text-2xl font-bold text-gray-800">ケアマネ編集</h1>
         </div>
 
         {/* フォーム */}

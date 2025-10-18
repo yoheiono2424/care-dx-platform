@@ -5,24 +5,63 @@ import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
 import { mockRoomData } from '@/data/mockRooms';
+import { mockFacilityData } from '@/data/mockFacilities';
 
 export default function RoomsPage() {
   const router = useRouter();
 
   // フィルター状態
-  const [selectedFacility, setSelectedFacility] = useState('');
+  const [selectedFacilityId, setSelectedFacilityId] = useState<number>(0);
 
   // フィルタリングされたデータ
   const filteredRecords = useMemo(() => {
     return mockRoomData.filter((record) => {
-      // 施設名フィルター
-      if (selectedFacility && !record.facility.includes(selectedFacility)) {
+      // 施設IDフィルター
+      if (
+        selectedFacilityId !== 0 &&
+        record.facilityId !== selectedFacilityId
+      ) {
         return false;
       }
 
       return true;
     });
-  }, [selectedFacility]);
+  }, [selectedFacilityId]);
+
+  // 施設ごとにグループ化
+  const groupedByFacility = useMemo(() => {
+    const groups: { [key: number]: typeof mockRoomData } = {};
+
+    filteredRecords.forEach((record) => {
+      if (!groups[record.facilityId]) {
+        groups[record.facilityId] = [];
+      }
+      groups[record.facilityId].push(record);
+    });
+
+    // 各施設内で部屋番号でソート
+    Object.keys(groups).forEach((facilityId) => {
+      groups[Number(facilityId)].sort((a, b) =>
+        a.roomNumber.localeCompare(b.roomNumber, 'ja', { numeric: true })
+      );
+    });
+
+    return groups;
+  }, [filteredRecords]);
+
+  // 施設IDの配列を施設名順にソート
+  const sortedFacilityIds = useMemo(() => {
+    return Object.keys(groupedByFacility)
+      .map(Number)
+      .sort((a, b) => {
+        const facilityA = mockFacilityData.find((f) => f.id === a);
+        const facilityB = mockFacilityData.find((f) => f.id === b);
+        return (facilityA?.name || '').localeCompare(
+          facilityB?.name || '',
+          'ja'
+        );
+      });
+  }, [groupedByFacility]);
 
   return (
     <MainLayout>
@@ -45,18 +84,23 @@ export default function RoomsPage() {
         {/* フィルター */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 施設名 */}
+            {/* 施設 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                施設名
+                施設
               </label>
-              <input
-                type="text"
-                placeholder="施設名"
-                value={selectedFacility}
-                onChange={(e) => setSelectedFacility(e.target.value)}
+              <select
+                value={selectedFacilityId}
+                onChange={(e) => setSelectedFacilityId(Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              >
+                <option value={0}>すべての施設</option>
+                {mockFacilityData.map((facility) => (
+                  <option key={facility.id} value={facility.id}>
+                    {facility.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
@@ -68,7 +112,7 @@ export default function RoomsPage() {
           </p>
         </div>
 
-        {/* スマホ表示: カード形式 */}
+        {/* スマホ表示: カード形式（現状維持） */}
         <div className="md:hidden space-y-4">
           {filteredRecords.map((record) => (
             <div key={record.id} className="bg-white rounded-lg shadow p-4">
@@ -120,77 +164,86 @@ export default function RoomsPage() {
           )}
         </div>
 
-        {/* PC表示: テーブル */}
-        <div className="hidden md:block bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  作成日
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  部屋番号
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  施設名
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  利用ステータス
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  編集
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  QRコード
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRecords.map((record) => (
-                <tr key={record.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
-                    {record.createdAt}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
-                    {record.roomNumber}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
-                    {record.facility}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
-                    {record.status}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
-                    <button
-                      onClick={() => router.push(`/rooms/${record.id}/edit`)}
-                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                    >
-                      編集
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
-                    <button
-                      onClick={() => {
-                        // QRコード生成処理（今後実装）
-                        alert(
-                          `QRコードを生成します: 部屋番号 ${record.roomNumber}`
-                        );
-                      }}
-                      className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-                    >
-                      QRコード
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* データなしメッセージ */}
-          {filteredRecords.length === 0 && (
-            <div className="text-center py-12">
+        {/* PC表示: 施設ごとにグループ化したリスト表示 */}
+        <div className="hidden md:block space-y-6">
+          {sortedFacilityIds.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-lg shadow">
               <p className="text-gray-500">データがありません</p>
             </div>
+          ) : (
+            sortedFacilityIds.map((facilityId) => {
+              const facility = mockFacilityData.find(
+                (f) => f.id === facilityId
+              );
+              const rooms = groupedByFacility[facilityId];
+
+              return (
+                <div
+                  key={facilityId}
+                  className="bg-white rounded-lg shadow overflow-hidden"
+                >
+                  {/* 施設見出し */}
+                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-800">
+                      {facility?.name || '不明な施設'} ({rooms.length}部屋)
+                    </h2>
+                  </div>
+
+                  {/* 部屋リスト */}
+                  <div className="divide-y divide-gray-100">
+                    {rooms.map((record) => (
+                      <div
+                        key={record.id}
+                        className="px-6 py-4 hover:bg-gray-50 transition-colors flex items-center justify-between"
+                      >
+                        {/* 左側: 部屋番号とステータス */}
+                        <div className="flex items-center gap-6">
+                          <div className="text-lg font-semibold text-gray-900 w-20">
+                            {record.roomNumber}
+                          </div>
+                          <div>
+                            <span
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                record.status === '利用中'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
+                              {record.status}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            作成日: {record.createdAt}
+                          </div>
+                        </div>
+
+                        {/* 右側: ボタン */}
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() =>
+                              router.push(`/rooms/${record.id}/edit`)
+                            }
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                          >
+                            編集
+                          </button>
+                          <button
+                            onClick={() => {
+                              alert(
+                                `QRコードを生成します: 部屋番号 ${record.roomNumber}`
+                              );
+                            }}
+                            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm font-medium"
+                          >
+                            QRコード
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </div>

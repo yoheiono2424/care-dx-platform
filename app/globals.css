@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* レスポンシブブレークポイント設定
  * スマホ: 〜767px (デフォルト)
@@ -51,8 +51,14 @@ body {
 
 /* 最小タップエリアの確保（スマホ用） */
 @media (max-width: 767px) {
-  button, a {
+  button,
+  a {
     min-height: 44px;
     min-width: 44px;
   }
+}
+
+/* 月次決算テーブルの下部スクロールバーを非表示 */
+#monthly-table-container::-webkit-scrollbar {
+  display: none;
 }

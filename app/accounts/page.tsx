@@ -55,7 +55,7 @@ export default function AccountsPage() {
         {/* ヘッダー */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">アカウント管理</h1>
+            <h1 className="text-2xl font-bold text-gray-800">スタッフ管理</h1>
           </div>
           <div className="flex gap-2">
             <Button

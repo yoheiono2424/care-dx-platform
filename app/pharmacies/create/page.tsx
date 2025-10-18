@@ -35,7 +35,7 @@ export default function PharmacyCreatePage() {
           >
             ←
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">薬局＞作成</h1>
+          <h1 className="text-2xl font-bold text-gray-800">薬局作成</h1>
         </div>
 
         {/* フォーム */}

@@ -1,9 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
+import {
+  mockFacilityData,
+  mockParentFloorData,
+  mockChildFloorData,
+} from '@/data/mockFacilities';
 
 export default function AccountEditPage() {
   const router = useRouter();
@@ -14,8 +19,8 @@ export default function AccountEditPage() {
     email: 'staff1@example.com',
     status: '利用中',
     role: 'スタッフ',
-    facilities: ['ケアホーム熊本'],
-    floors: ['1階'],
+    facilities: [1] as number[], // ケアホーム熊本のID
+    floors: [1] as number[], // 1階のID
     emergencyContact: '090-1234-5678',
     notes: '',
   });
@@ -26,9 +31,94 @@ export default function AccountEditPage() {
     careWorkerPractical: false,
   });
 
+  // 選択された施設に紐づくフロアを取得
+  const availableFloors = useMemo(() => {
+    if (formData.facilities.length === 0) {
+      return { parentFloors: [], childFloors: [] };
+    }
+
+    const parentFloors = mockParentFloorData.filter((pf) =>
+      formData.facilities.includes(pf.facilityId)
+    );
+    const childFloors = mockChildFloorData.filter((cf) =>
+      formData.facilities.includes(cf.facilityId)
+    );
+
+    return { parentFloors, childFloors };
+  }, [formData.facilities]);
+
+  // 施設選択の切り替え
+  const handleFacilityToggle = (facilityId: number) => {
+    if (formData.facilities.includes(facilityId)) {
+      // 施設の選択を解除する場合、その施設に紐づくフロアも解除
+      const removedFacilityFloors = [
+        ...mockParentFloorData
+          .filter((pf) => pf.facilityId === facilityId)
+          .map((pf) => pf.id),
+        ...mockChildFloorData
+          .filter((cf) => cf.facilityId === facilityId)
+          .map((cf) => cf.id + 1000), // 子フロアIDは+1000
+      ];
+
+      setFormData({
+        ...formData,
+        facilities: formData.facilities.filter((id) => id !== facilityId),
+        floors: formData.floors.filter(
+          (floorId) => !removedFacilityFloors.includes(floorId)
+        ),
+      });
+    } else {
+      setFormData({
+        ...formData,
+        facilities: [...formData.facilities, facilityId],
+      });
+    }
+  };
+
+  // 親フロア選択の切り替え
+  const handleParentFloorToggle = (floorId: number) => {
+    if (formData.floors.includes(floorId)) {
+      // 親フロアの選択を解除する場合、その子フロアも解除
+      const childFloorIds = mockChildFloorData
+        .filter((cf) => cf.parentFloorId === floorId)
+        .map((cf) => cf.id + 1000);
+
+      setFormData({
+        ...formData,
+        floors: formData.floors.filter(
+          (id) => id !== floorId && !childFloorIds.includes(id)
+        ),
+      });
+    } else {
+      setFormData({
+        ...formData,
+        floors: [...formData.floors, floorId],
+      });
+    }
+  };
+
+  // 子フロア選択の切り替え
+  const handleChildFloorToggle = (floorId: number) => {
+    if (formData.floors.includes(floorId)) {
+      setFormData({
+        ...formData,
+        floors: formData.floors.filter((id) => id !== floorId),
+      });
+    } else {
+      setFormData({
+        ...formData,
+        floors: [...formData.floors, floorId],
+      });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // 保存処理（今後実装）
+    console.log('保存データ:', {
+      ...formData,
+      qualifications,
+    });
     router.push('/accounts');
   };
 
@@ -43,9 +133,7 @@ export default function AccountEditPage() {
           >
             ←
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">
-            アカウント管理＞編集
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800">スタッフ編集</h1>
         </div>
 
         {/* フォーム */}
@@ -130,89 +218,118 @@ export default function AccountEditPage() {
               </select>
             </div>
 
-            {/* メールアドレス (2つ目) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                メールアドレス
-              </label>
-              <input
-                type="email"
-                placeholder="メールアドレス"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
             {/* 施設 (複数選択) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 施設
               </label>
               <div className="space-y-2">
-                {['ケアホーム熊本', 'ケアホーム福岡', 'ケアホーム鹿児島'].map(
-                  (facility) => (
-                    <label key={facility} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.facilities.includes(facility)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({
-                              ...formData,
-                              facilities: [...formData.facilities, facility],
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              facilities: formData.facilities.filter(
-                                (f) => f !== facility
-                              ),
-                            });
-                          }
-                        }}
-                        className="mr-2"
-                      />
-                      <span className="text-sm text-gray-700">{facility}</span>
-                    </label>
-                  )
-                )}
-              </div>
-            </div>
-
-            {/* フロア (複数選択) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                フロア
-              </label>
-              <div className="space-y-2">
-                {['1階', '2階', '3階'].map((floor) => (
-                  <label key={floor} className="flex items-center">
+                {mockFacilityData.map((facility) => (
+                  <label key={facility.id} className="flex items-center">
                     <input
                       type="checkbox"
-                      checked={formData.floors.includes(floor)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData({
-                            ...formData,
-                            floors: [...formData.floors, floor],
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            floors: formData.floors.filter((f) => f !== floor),
-                          });
-                        }
-                      }}
+                      checked={formData.facilities.includes(facility.id)}
+                      onChange={() => handleFacilityToggle(facility.id)}
                       className="mr-2"
                     />
-                    <span className="text-sm text-gray-700">{floor}</span>
+                    <span className="text-sm text-gray-700">
+                      {facility.name}
+                    </span>
                   </label>
                 ))}
               </div>
             </div>
+
+            {/* フロア (階層的選択) */}
+            {formData.facilities.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  フロア
+                </label>
+                <div className="space-y-3">
+                  {availableFloors.parentFloors.map((parentFloor) => {
+                    // この親フロアに紐づく子フロアを取得
+                    const childFloors = availableFloors.childFloors.filter(
+                      (cf) => cf.parentFloorId === parentFloor.id
+                    );
+
+                    return (
+                      <div
+                        key={parentFloor.id}
+                        className="border-l-2 border-gray-300 pl-4"
+                      >
+                        {/* 親フロア */}
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={formData.floors.includes(parentFloor.id)}
+                            onChange={() =>
+                              handleParentFloorToggle(parentFloor.id)
+                            }
+                            className="mr-2"
+                          />
+                          <span className="text-sm text-gray-700 font-medium">
+                            {parentFloor.name}
+                          </span>
+                          <span className="ml-2 text-xs text-gray-500">
+                            (
+                            {
+                              mockFacilityData.find(
+                                (f) => f.id === parentFloor.facilityId
+                              )?.name
+                            }
+                            )
+                          </span>
+                        </label>
+
+                        {/* 子フロア */}
+                        {childFloors.length > 0 && (
+                          <div className="ml-6 mt-2 space-y-2">
+                            {childFloors.map((childFloor) => {
+                              // 親フロアが選択されているかチェック
+                              const isParentSelected = formData.floors.includes(
+                                childFloor.parentFloorId
+                              );
+                              return (
+                                <label
+                                  key={childFloor.id}
+                                  className={`flex items-center ${
+                                    !isParentSelected ? 'opacity-50' : ''
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={formData.floors.includes(
+                                      childFloor.id + 1000
+                                    )}
+                                    onChange={() =>
+                                      handleChildFloorToggle(
+                                        childFloor.id + 1000
+                                      )
+                                    }
+                                    disabled={!isParentSelected}
+                                    className="mr-2"
+                                  />
+                                  <span
+                                    className={`text-sm ${
+                                      !isParentSelected
+                                        ? 'text-gray-400'
+                                        : 'text-gray-600'
+                                    }`}
+                                  >
+                                    {childFloor.name}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* 保有資格 */}
             <div>

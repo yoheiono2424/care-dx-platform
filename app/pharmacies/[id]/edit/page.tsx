@@ -35,7 +35,7 @@ export default function PharmacyEditPage() {
           >
             ←
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">薬局＞編集</h1>
+          <h1 className="text-2xl font-bold text-gray-800">薬局編集</h1>
         </div>
 
         {/* フォーム */}

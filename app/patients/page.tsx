@@ -197,10 +197,10 @@ export default function PatientsPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => router.push(`/patients/${record.id}/edit`)}
+                    onClick={() => router.push(`/patients/${record.id}`)}
                     className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
                   >
-                    編集
+                    詳細
                   </button>
                 </div>
               </div>
@@ -257,7 +257,7 @@ export default function PatientsPage() {
                   利用開始日
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  編集
+                  詳細
                 </th>
               </tr>
             </thead>
@@ -284,10 +284,10 @@ export default function PatientsPage() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                     <button
-                      onClick={() => router.push(`/patients/${record.id}/edit`)}
+                      onClick={() => router.push(`/patients/${record.id}`)}
                       className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                     >
-                      編集
+                      詳細
                     </button>
                   </td>
                 </tr>
