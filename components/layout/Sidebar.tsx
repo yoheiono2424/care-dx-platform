@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 
 interface MenuItem {
   id: string;
@@ -25,6 +25,26 @@ const menuItems: MenuItem[] = [
     href: '/interventions',
   },
   { id: 'entry', label: '入室記録', icon: 'entry', href: '/entry-records' },
+  {
+    id: 'reports',
+    label: '報告',
+    icon: 'report',
+    href: '#',
+    children: [
+      {
+        id: 'accident-report',
+        label: '事故報告',
+        icon: 'accident',
+        href: '/accident-reports',
+      },
+      {
+        id: 'status-change',
+        label: '状態変化',
+        icon: 'status',
+        href: '/status-changes',
+      },
+    ],
+  },
   { id: 'patient', label: '利用者', icon: 'patient', href: '/patients' },
   { id: 'doctor', label: '医師', icon: 'doctor', href: '/doctors' },
   { id: 'pharmacy', label: '薬局', icon: 'pharmacy', href: '/pharmacies' },
@@ -292,6 +312,51 @@ const icons: Record<string, ReactElement> = {
       />
     </svg>
   ),
+  report: (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      />
+    </svg>
+  ),
+  accident: (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+      />
+    </svg>
+  ),
+  status: (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+      />
+    </svg>
+  ),
 };
 
 interface SidebarProps {
@@ -301,6 +366,15 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  const toggleExpand = (itemId: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
 
   return (
     <>
@@ -325,26 +399,85 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <ul className="space-y-1 px-3">
             {menuItems.map((item) => (
               <li key={item.id}>
-                <Link
-                  href={item.href}
-                  className={`
-                    flex items-center gap-3 px-3 py-2 rounded-md
-                    transition-colors text-sm
-                    ${
-                      pathname === item.href
-                        ? 'bg-primary text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }
-                  `}
-                  onClick={() => {
-                    if (onClose && window.innerWidth < 1024) {
-                      onClose();
-                    }
-                  }}
-                >
-                  {icons[item.icon]}
-                  <span>{item.label}</span>
-                </Link>
+                {item.children ? (
+                  // 子メニューがある場合
+                  <>
+                    <button
+                      onClick={() => toggleExpand(item.id)}
+                      className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-md transition-colors text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <div className="flex items-center gap-3">
+                        {icons[item.icon]}
+                        <span>{item.label}</span>
+                      </div>
+                      <svg
+                        className={`w-4 h-4 transition-transform ${
+                          expandedItems.includes(item.id) ? 'rotate-90' : ''
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                    {expandedItems.includes(item.id) && (
+                      <ul className="ml-6 mt-1 space-y-1">
+                        {item.children.map((child) => (
+                          <li key={child.id}>
+                            <Link
+                              href={child.href}
+                              className={`
+                                flex items-center gap-3 px-3 py-2 rounded-md
+                                transition-colors text-sm
+                                ${
+                                  pathname === child.href
+                                    ? 'bg-primary text-white'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }
+                              `}
+                              onClick={() => {
+                                if (onClose && window.innerWidth < 1024) {
+                                  onClose();
+                                }
+                              }}
+                            >
+                              {icons[child.icon]}
+                              <span>{child.label}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  // 子メニューがない場合
+                  <Link
+                    href={item.href}
+                    className={`
+                      flex items-center gap-3 px-3 py-2 rounded-md
+                      transition-colors text-sm
+                      ${
+                        pathname === item.href
+                          ? 'bg-primary text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }
+                    `}
+                    onClick={() => {
+                      if (onClose && window.innerWidth < 1024) {
+                        onClose();
+                      }
+                    }}
+                  >
+                    {icons[item.icon]}
+                    <span>{item.label}</span>
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

@@ -1,24 +1,15 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
-import { mockVitalRecords } from '@/data/mockVitals';
-import type { VitalRecord } from '@/data/mockVitals';
 
-export default function VitalEditPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function VitalCreatePage() {
   const router = useRouter();
-  const resolvedParams = use(params);
-  const { id } = resolvedParams;
 
-  // 編集データの状態
-  const [vitalData, setVitalData] = useState<VitalRecord | null>(null);
+  // フォームデータの初期値
   const [formData, setFormData] = useState({
-    registeredAt: '',
+    registeredAt: new Date().toISOString().slice(0, 16), // 現在日時
     patientName: '',
     floor: '',
     bloodPressureHigh: '',
@@ -38,40 +29,6 @@ export default function VitalEditPage({
 
   // 保存状態
   const [isSaving, setIsSaving] = useState(false);
-
-  // データ読み込み
-  useEffect(() => {
-    const record = mockVitalRecords.find((r) => r.id === id);
-    if (record) {
-      setVitalData(record);
-
-      // 血圧を分解
-      const [high, low] = record.bloodPressure.split('/');
-
-      // 日時をフォーマット（yyyy-MM-ddTHH:mm形式）
-      const date = new Date(record.registeredAt);
-      const formattedDate = date.toISOString().slice(0, 16);
-
-      setFormData({
-        registeredAt: formattedDate,
-        patientName: record.patientName,
-        floor: record.floor,
-        bloodPressureHigh: high,
-        bloodPressureLow: low,
-        pulse: String(record.pulse),
-        respiratoryRate: String(record.respiratoryRate),
-        oxygenSaturation: String(record.oxygenSaturation),
-        temperature: String(record.temperature),
-        ecg: record.ecg,
-        height: String(record.height),
-        weight: String(record.weight),
-        cough: record.cough,
-        sputumAmount: record.sputumAmount,
-        sputumColor: record.sputumColor,
-        sputumConsistency: record.sputumConsistency,
-      });
-    }
-  }, [id]);
 
   // 入力変更ハンドラ
   const handleChange = (
@@ -108,7 +65,7 @@ export default function VitalEditPage({
 
     // 実際のバックエンド実装時はここでAPIコール
     setTimeout(() => {
-      alert('バイタルデータを更新しました');
+      alert('バイタルデータを登録しました');
       setIsSaving(false);
       router.push('/vitals');
     }, 500);
@@ -116,20 +73,10 @@ export default function VitalEditPage({
 
   // キャンセル処理
   const handleCancel = () => {
-    if (confirm('編集を中止しますか?')) {
+    if (confirm('登録を中止しますか?')) {
       router.push('/vitals');
     }
   };
-
-  if (!vitalData) {
-    return (
-      <MainLayout>
-        <div className="p-6">
-          <p className="text-gray-600">データを読み込んでいます...</p>
-        </div>
-      </MainLayout>
-    );
-  }
 
   return (
     <MainLayout>
@@ -142,13 +89,13 @@ export default function VitalEditPage({
           >
             ← 一覧に戻る
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">バイタル編集</h1>
+          <h1 className="text-2xl font-bold text-gray-800">バイタル新規登録</h1>
           <p className="text-sm text-gray-600 mt-1">
-            バイタルデータを編集します
+            新しいバイタルデータを登録します
           </p>
         </div>
 
-        {/* 編集フォーム */}
+        {/* 登録フォーム */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 登録日時 */}
@@ -429,7 +376,7 @@ export default function VitalEditPage({
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
-              {isSaving ? '保存中...' : '保存'}
+              {isSaving ? '登録中...' : '登録'}
             </button>
           </div>
         </div>

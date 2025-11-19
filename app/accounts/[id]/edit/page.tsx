@@ -15,6 +15,7 @@ export default function AccountEditPage() {
 
   // フォームデータ（編集時は既存データで初期化）
   const [formData, setFormData] = useState({
+    staffId: 'ST001',
     name: '山田太郎',
     email: 'staff1@example.com',
     status: '利用中',
@@ -142,12 +143,20 @@ export default function AccountEditPage() {
           className="bg-white rounded-lg shadow p-6"
         >
           <div className="space-y-6">
-            {/* ID */}
+            {/* スタッフID */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                ID
+                スタッフID
               </label>
-              <div className="text-gray-900">000001</div>
+              <input
+                type="text"
+                placeholder="スタッフID"
+                value={formData.staffId}
+                onChange={(e) =>
+                  setFormData({ ...formData, staffId: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             {/* スタッフ名 */}

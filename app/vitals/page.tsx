@@ -9,6 +9,9 @@ import { mockVitalRecords } from '@/data/mockVitals';
 export default function VitalsPage() {
   const router = useRouter();
 
+  // タブ状態（一覧タブは押下しても反応しない仕様のため、activeTabのみ保持）
+  const [activeTab] = useState<'list' | 'individual' | 'floor'>('list');
+
   // フィルター状態
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -68,6 +71,10 @@ export default function VitalsPage() {
       '心電図',
       '身長',
       '体重',
+      '咳嗽',
+      '痰の量',
+      '痰の色',
+      '痰の性状',
     ];
 
     const csvContent = [
@@ -84,6 +91,10 @@ export default function VitalsPage() {
           record.ecg,
           record.height,
           record.weight,
+          record.cough,
+          record.sputumAmount,
+          record.sputumColor,
+          record.sputumConsistency,
         ].join(',')
       ),
     ].join('\n');
@@ -121,6 +132,16 @@ export default function VitalsPage() {
     router.push(`/vitals/${id}/edit`);
   };
 
+  // タブ切り替え
+  const handleTabChange = (tab: 'list' | 'individual' | 'floor') => {
+    if (tab === 'individual') {
+      router.push('/vitals/overview/individual');
+    } else if (tab === 'floor') {
+      router.push('/vitals/overview/team');
+    }
+    // 一覧タブは何もしない（現在のページのまま）
+  };
+
   return (
     <MainLayout>
       <div className="p-4 md:p-6">
@@ -133,10 +154,56 @@ export default function VitalsPage() {
             </p>
           </div>
           {!isMobile && (
-            <Button variant="primary" onClick={handleDownloadCSV}>
-              CSVダウンロード
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => router.push('/vitals/create')}
+              >
+                新規登録
+              </Button>
+              <Button variant="primary" onClick={handleDownloadCSV}>
+                CSVダウンロード
+              </Button>
+            </div>
           )}
+        </div>
+
+        {/* タブ */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => handleTabChange('list')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'list'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                一覧
+              </button>
+              <button
+                onClick={() => handleTabChange('individual')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'individual'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                個人
+              </button>
+              <button
+                onClick={() => handleTabChange('floor')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'floor'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                フロア
+              </button>
+            </nav>
+          </div>
         </div>
 
         {/* フィルター */}
@@ -197,6 +264,26 @@ export default function VitalsPage() {
             </div>
           </div>
         </div>
+
+        {/* モバイル: ボタン群 */}
+        {isMobile && (
+          <div className="mb-4 flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => router.push('/vitals/create')}
+              className="flex-1"
+            >
+              新規登録
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDownloadCSV}
+              className="flex-1"
+            >
+              CSV
+            </Button>
+          </div>
+        )}
 
         {/* データ件数表示 */}
         <div className="mb-4">
@@ -293,10 +380,34 @@ export default function VitalsPage() {
                     {record.height}cm
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-2">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">体重</span>
                   <span className="text-sm font-medium text-gray-900">
                     {record.weight}kg
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">咳嗽</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.cough}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">痰の量</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.sputumAmount}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">痰の色</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.sputumColor}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">痰の性状</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {record.sputumConsistency}
                   </span>
                 </div>
               </div>
@@ -347,6 +458,18 @@ export default function VitalsPage() {
                   体重
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  咳嗽
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  痰の量
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  痰の色
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  痰の性状
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   編集
                 </th>
               </tr>
@@ -391,6 +514,18 @@ export default function VitalsPage() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                     {record.weight}kg
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                    {record.cough}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                    {record.sputumAmount}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                    {record.sputumColor}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                    {record.sputumConsistency}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                     <button

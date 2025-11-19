@@ -15,6 +15,7 @@ export default function AccountCreatePage() {
 
   // フォームデータ
   const [formData, setFormData] = useState({
+    staffId: '',
     name: '',
     email: '',
     status: '',
@@ -142,6 +143,22 @@ export default function AccountCreatePage() {
           className="bg-white rounded-lg shadow p-6"
         >
           <div className="space-y-6">
+            {/* スタッフID */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                スタッフID
+              </label>
+              <input
+                type="text"
+                placeholder="スタッフID"
+                value={formData.staffId}
+                onChange={(e) =>
+                  setFormData({ ...formData, staffId: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
             {/* スタッフ名 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -14,6 +14,10 @@ export interface VitalRecord {
   ecg: string; // 心電図 (正常/異常)
   height: number; // 身長 (cm)
   weight: number; // 体重 (kg)
+  cough: string; // 咳嗽 (なし/湿性/乾性)
+  sputumAmount: string; // 痰の量 (小/中/多)
+  sputumColor: string; // 痰の色 (透明/白色/黄色/緑色/暗赤・褐色/赤色/ピンク色/錆色)
+  sputumConsistency: string; // 痰の性状 (漿液性/粘性/膿性/血性/泡沫状)
 }
 
 // 固定シード値を使った疑似乱数生成関数（SSR対応）
@@ -96,6 +100,55 @@ const generateVitalRecords = (): VitalRecord[] => {
         // 心電図は95%の確率で正常
         const ecg = seededRandom(seed++) > 0.05 ? '正常' : '異常';
 
+        // 咳嗽（80%の確率でなし）
+        const coughOptions = ['なし', '湿性', '乾性'];
+        const coughRand = seededRandom(seed++);
+        const cough =
+          coughRand < 0.8
+            ? 'なし'
+            : coughOptions[Math.floor((coughRand - 0.8) * 10)];
+
+        // 痰の量（70%の確率で小）
+        const sputumAmountOptions = ['小', '中', '多'];
+        const sputumAmountRand = seededRandom(seed++);
+        const sputumAmount =
+          sputumAmountRand < 0.7
+            ? '小'
+            : sputumAmountOptions[Math.floor((sputumAmountRand - 0.7) * 6.67)];
+
+        // 痰の色（80%の確率で透明）
+        const sputumColorOptions = [
+          '透明',
+          '白色',
+          '黄色',
+          '緑色',
+          '暗赤・褐色',
+          '赤色',
+          'ピンク色',
+          '錆色',
+        ];
+        const sputumColorRand = seededRandom(seed++);
+        const sputumColor =
+          sputumColorRand < 0.8
+            ? '透明'
+            : sputumColorOptions[Math.floor((sputumColorRand - 0.8) * 35)];
+
+        // 痰の性状（70%の確率で漿液性）
+        const sputumConsistencyOptions = [
+          '漿液性',
+          '粘性',
+          '膿性',
+          '血性',
+          '泡沫状',
+        ];
+        const sputumConsistencyRand = seededRandom(seed++);
+        const sputumConsistency =
+          sputumConsistencyRand < 0.7
+            ? '漿液性'
+            : sputumConsistencyOptions[
+                Math.floor((sputumConsistencyRand - 0.7) * 13.33)
+              ];
+
         records.push({
           id: String(id),
           registeredAt: date.toISOString(),
@@ -110,6 +163,10 @@ const generateVitalRecords = (): VitalRecord[] => {
           ecg,
           height,
           weight,
+          cough,
+          sputumAmount,
+          sputumColor,
+          sputumConsistency,
         });
 
         id++;
