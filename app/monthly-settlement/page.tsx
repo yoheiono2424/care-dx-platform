@@ -11,7 +11,7 @@ import {
 // 選択肢の定義
 const FIELD_OPTIONS = {
   currentStatus: [
-    '追跡',
+    '-',
     '新規',
     '退去',
     '入院',
@@ -22,32 +22,56 @@ const FIELD_OPTIONS = {
   ],
   plannedIntervention: [1, 2, 3],
   welfare: ['あり', 'なし'],
-  oralCare: ['算定'],
+  oralCare: ['算定', '-'],
   careBurdenRate: ['1割', '2割', '3割', '公費'],
   medicalBurdenRate: ['1割', '2割', '3割', '公費'],
   thickeningUse: ['15日以上', '15日未満', '利用なし'],
-  medicalNotes: [], // UIのみ、選択肢は後で追加
-  medicalPublicExpense: [], // UIのみ、選択肢は後で追加
+  medicalNotes: [
+    '26区ア',
+    '27区イ',
+    '28区ウ',
+    '29区エ',
+    '30区オⅠ',
+    '30区オⅡ',
+    '41区カ',
+    '42区キ',
+    '無記載',
+  ],
+  medicalPublicExpense: [
+    '医療券',
+    '難病指定',
+    '身体医療証',
+    '原爆',
+    '中国在留',
+    '水俣病',
+    '-',
+  ],
   medicalInsurance: [
-    '末期ガン',
-    '多発性硬化症',
-    '重症筋無力症',
-    'スモン',
-    'ALS',
-    '脊髄小脳変性症',
-    'ハンチントン病',
-    '進行性筋ジストロフィー',
-    'パーキンソン関連多系統萎縮症',
-    'プリオン病',
-    '亜急性硬化性全脳炎',
-    'ライソゾーム病',
-    '副腎白質ジストロフィー',
-    '脊髄性筋萎縮症',
-    '後天性免疫不全症候群（エイズ）',
-    '頸髄損傷',
-    '人工呼吸器',
+    '-',
+    '特指示',
+    '別表7：末期ガン',
+    '別表7：多発性硬化症',
+    '別表7：重症筋無力症',
+    '別表7：スモン',
+    '別表7：ALS',
+    '別表7：脊髄小脳変性症',
+    '別表7：ハンチントン病',
+    '別表7：進行性筋ジストロフィー',
+    '別表7：パーキンソン関連',
+    '別表7：多系統萎縮症',
+    '別表7：プリオン病',
+    '別表7：亜急性硬化性全脳炎',
+    '別表7：ライソゾーム病',
+    '別表7：副腎白質ジストロフィー',
+    '別表7：脊髄性筋萎縮症',
+    '別表7：球脊髄性筋委縮症',
+    '別表7：多発神経炎',
+    '別表7：後天性免疫不全症候群',
+    '別表7：頚髄損傷',
+    '別表7：人工呼吸器',
   ],
   specialManagement: [
+    '-',
     '在宅麻薬等注射指導管理',
     '在宅腫瘍化学療法注射指導管理',
     '在宅強心剤持続投与指導管理',
@@ -67,10 +91,10 @@ const FIELD_OPTIONS = {
     '人工肛門又は人工膀胱',
     '真皮を超える褥瘡',
     '点滴注射管理指導',
-    '留置カテーテル・真皮を超える褥瘡',
-    '気管カニューレ・真皮を超える褥瘡',
-    '留置カテーテル・点滴注射管理指導',
-    '留置カテーテル・真皮を超える褥瘡・点滴注射管理指導',
+    '留置カテーテル, 真皮を超える褥瘡',
+    '気管カニューレ, 真皮を超える褥瘡',
+    '留置カテーテル, 点滴注射管理指導',
+    '留置カテーテル, 真皮を超える褥瘡, 点滴注射管理指導',
   ],
   dailyRecords: ['●', '■', '▼', '★', '00', '空白'],
 };
@@ -841,7 +865,7 @@ export default function MonthlySettlementPage() {
                         終了日
                       </th>
                       <th
-                        className="bg-gray-100 px-2 text-center font-semibold text-gray-700 whitespace-nowrap"
+                        className="bg-gray-100 px-2 text-center font-semibold text-gray-700 border-r-2 border-gray-300 whitespace-nowrap"
                         style={{
                           minWidth: '85px',
                           height: '40px',
@@ -850,6 +874,500 @@ export default function MonthlySettlementPage() {
                         }}
                       >
                         とろみ濃度
+                      </th>
+
+                      {/* 稼働関連列（5列） */}
+                      <th
+                        className="bg-yellow-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '60px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        稼働率
+                      </th>
+                      <th
+                        className="bg-yellow-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '55px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        月日数
+                      </th>
+                      <th
+                        className="bg-yellow-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '85px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        当月在所日数
+                      </th>
+                      <th
+                        className="bg-yellow-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '45px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        デイ
+                      </th>
+                      <th
+                        className="bg-yellow-50 px-2 text-center font-semibold text-gray-700 border-r-2 border-gray-300 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        部屋確保
+                      </th>
+
+                      {/* 医療クール計算列（15列） */}
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療クール計算
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '95px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        特指示クール数
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '95px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        別表７クール数
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療日数
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療回数
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '55px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        除外数
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '55px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療枠
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '75px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療取得率
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '90px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療介入回数
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療介入回数(日)
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '95px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        別表7回数(日)
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '95px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        特指示回数(日)
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療介入回数(月)
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '95px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        別表7回数(月)
+                      </th>
+                      <th
+                        className="bg-green-50 px-2 text-center font-semibold text-gray-700 border-r-2 border-gray-300 whitespace-nowrap"
+                        style={{
+                          minWidth: '95px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        特指示回数(月)
+                      </th>
+
+                      {/* 介護売上列（14列） */}
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        定期巡回
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療減算
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        デイ減算
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        緊急加算
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        ターミナル(介護)
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        共同指導(介護)
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '50px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        口腔
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '75px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        特管(介護)
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        総合マネ
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        提供加算Ⅲ
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        初期加算
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '90px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        介護処遇以外
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        処遇加算
+                      </th>
+                      <th
+                        className="bg-purple-50 px-2 text-center font-semibold text-gray-700 border-r-2 border-gray-300 whitespace-nowrap"
+                        style={{
+                          minWidth: '65px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        地域加算
+                      </th>
+
+                      {/* 医療売上列（6列） */}
+                      <th
+                        className="bg-orange-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        医療保険(計算)
+                      </th>
+                      <th
+                        className="bg-orange-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        初日差額分
+                      </th>
+                      <th
+                        className="bg-orange-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        ターミナル(医療)
+                      </th>
+                      <th
+                        className="bg-orange-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        共同指導(医療)
+                      </th>
+                      <th
+                        className="bg-orange-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '100px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        緊急加算(医療)
+                      </th>
+                      <th
+                        className="bg-orange-50 px-2 text-center font-semibold text-gray-700 border-r-2 border-gray-300 whitespace-nowrap"
+                        style={{
+                          minWidth: '80px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        特管(医療)
+                      </th>
+
+                      {/* ホテルコスト列（4列） */}
+                      <th
+                        className="bg-pink-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '55px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        家賃
+                      </th>
+                      <th
+                        className="bg-pink-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '55px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        管理費
+                      </th>
+                      <th
+                        className="bg-pink-50 px-2 text-center font-semibold text-gray-700 border-r border-gray-200 whitespace-nowrap"
+                        style={{
+                          minWidth: '70px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        食事形態
+                      </th>
+                      <th
+                        className="bg-pink-50 px-2 text-center font-semibold text-gray-700 whitespace-nowrap"
+                        style={{
+                          minWidth: '55px',
+                          height: '40px',
+                          lineHeight: '1.2',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        食費
                       </th>
                     </tr>
                   </thead>
@@ -1295,6 +1813,457 @@ export default function MonthlySettlementPage() {
                             }
                           >
                             {record.thickeningConcentration || '-'}
+                          </td>
+
+                          {/* 計算列（44列）- 将来的にバックエンドで計算 */}
+                          {/* 稼働関連列（5列） */}
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-yellow-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-yellow-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-yellow-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-yellow-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r-2 border-gray-300 bg-yellow-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+
+                          {/* 医療クール計算列（15列） */}
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r-2 border-gray-300 bg-green-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+
+                          {/* 介護売上列（14列） */}
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r-2 border-gray-300 bg-purple-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+
+                          {/* 医療売上列（6列） */}
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-orange-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-orange-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-orange-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-orange-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-orange-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r-2 border-gray-300 bg-orange-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+
+                          {/* ホテルコスト列（4列） */}
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-pink-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-pink-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center border-r border-gray-200 bg-pink-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
+                          </td>
+                          <td
+                            className="px-2 text-center bg-pink-50 text-gray-500 text-[10px] whitespace-nowrap"
+                            style={{
+                              height: '32px',
+                              lineHeight: '1.2',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            -
                           </td>
                         </tr>
                       );

@@ -1,0 +1,165 @@
+export interface StaffEvaluation {
+  id: string;
+  staffName: string;
+  position: '取締役' | '施設長' | '部長' | 'フロア長' | '主任' | 'チーフ' | 'スタッフ';
+  facilityName: string;
+  floor: string;
+  taskCount: number;
+  interventionCount: number;
+  diaperChangeCount: number;
+  characterCount: number;
+  period: string;
+  lastUpdated: string;
+}
+
+export const mockStaffEvaluations: StaffEvaluation[] = [
+  {
+    id: 'SE001',
+    staffName: '山田 太郎',
+    position: '取締役',
+    facilityName: 'メディケア癒しDX京町台',
+    floor: '1F',
+    taskCount: 0,
+    interventionCount: 0,
+    diaperChangeCount: 0,
+    characterCount: 0,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+  {
+    id: 'SE002',
+    staffName: '佐藤 花子',
+    position: '施設長',
+    facilityName: 'メディケア癒しDX京町台',
+    floor: '1F',
+    taskCount: 45,
+    interventionCount: 120,
+    diaperChangeCount: 30,
+    characterCount: 8500,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+  {
+    id: 'SE003',
+    staffName: '鈴木 一郎',
+    position: '部長',
+    facilityName: 'メディケア癒しDX京町台',
+    floor: '1F',
+    taskCount: 38,
+    interventionCount: 95,
+    diaperChangeCount: 25,
+    characterCount: 7200,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+  {
+    id: 'SE004',
+    staffName: '高橋 美咲',
+    position: 'フロア長',
+    facilityName: 'メディケア癒しDX京町台',
+    floor: '1F',
+    taskCount: 52,
+    interventionCount: 150,
+    diaperChangeCount: 48,
+    characterCount: 9800,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+  {
+    id: 'SE005',
+    staffName: '田中 健太',
+    position: '主任',
+    facilityName: 'メディケア癒しDX京町台',
+    floor: '2F',
+    taskCount: 65,
+    interventionCount: 180,
+    diaperChangeCount: 62,
+    characterCount: 12000,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+  {
+    id: 'SE006',
+    staffName: '伊藤 さくら',
+    position: 'チーフ',
+    facilityName: 'メディケア癒しDX京町台',
+    floor: '2F',
+    taskCount: 72,
+    interventionCount: 195,
+    diaperChangeCount: 70,
+    characterCount: 13500,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+  {
+    id: 'SE007',
+    staffName: '渡辺 優子',
+    position: 'スタッフ',
+    facilityName: 'メディケア癒しDX京町台',
+    floor: '2F',
+    taskCount: 85,
+    interventionCount: 210,
+    diaperChangeCount: 78,
+    characterCount: 15200,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+  {
+    id: 'SE008',
+    staffName: '中村 大輔',
+    position: 'スタッフ',
+    facilityName: 'メディケア癒しDX今宿',
+    floor: '1F',
+    taskCount: 78,
+    interventionCount: 188,
+    diaperChangeCount: 65,
+    characterCount: 14000,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+  {
+    id: 'SE009',
+    staffName: '小林 真由美',
+    position: 'チーフ',
+    facilityName: 'メディケア癒しDX今宿',
+    floor: '1F',
+    taskCount: 68,
+    interventionCount: 175,
+    diaperChangeCount: 58,
+    characterCount: 11800,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+  {
+    id: 'SE010',
+    staffName: '加藤 翔',
+    position: '主任',
+    facilityName: 'メディケア癒しDX長嶺',
+    floor: '3F',
+    taskCount: 60,
+    interventionCount: 165,
+    diaperChangeCount: 55,
+    characterCount: 10500,
+    period: '2025年12月',
+    lastUpdated: '2025-12-23',
+  },
+];
+
+export const positionOrder = [
+  '取締役',
+  '施設長',
+  '部長',
+  'フロア長',
+  '主任',
+  'チーフ',
+  'スタッフ',
+];
+
+export const facilityNames = [
+  'メディケア癒しDX京町台',
+  'メディケア癒しDX今宿',
+  'メディケア癒しDX長嶺',
+  'メディケア癒し花園',
+  'グッドファイブ熊本',
+  'グッドファイブ福岡',
+];
