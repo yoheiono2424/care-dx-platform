@@ -89,7 +89,7 @@ export default function PatientDetailPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">
               基本情報
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <ReadOnlyField label="ID" value={patient.id} />
               <ReadOnlyField label="状況" value={patient.status} />
               <ReadOnlyField label="部屋番号" value={patient.roomNumber} />
@@ -137,7 +137,7 @@ export default function PatientDetailPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">
               医療・プライマリー
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <ReadOnlyField label="プライマリー①" value={patient.primary1} />
               <ReadOnlyField label="プライマリー②" value={patient.primary2} />
               <ReadOnlyField
@@ -161,7 +161,7 @@ export default function PatientDetailPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">
               居宅・ケアマネ
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <ReadOnlyField label="居宅" value={patient.homeCareFacility} />
               <ReadOnlyField label="担当" value={patient.homeCareStaff} />
               <ReadOnlyField label="ケアマネ" value={patient.careManager1} />
@@ -176,7 +176,7 @@ export default function PatientDetailPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">
               緊急連絡先
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <ReadOnlyField
                 label="緊急連絡先①"
                 value={patient.emergencyContact1}
@@ -208,7 +208,7 @@ export default function PatientDetailPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">
               サービス利用
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <ReadOnlyField
                 label="通所利用先"
                 value={patient.dayCareProvider}
@@ -251,7 +251,7 @@ export default function PatientDetailPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">
               疾患・医療行為
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <ReadOnlyField label="疾患" value={patient.disease} />
               <ReadOnlyField label="診断名" value={patient.diagnosis} />
               <ReadOnlyField label="既往歴" value={patient.medicalHistory} />
@@ -281,7 +281,7 @@ export default function PatientDetailPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">
               ADL・ケア
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <ReadOnlyField
                 label="日常生活自立度"
                 value={patient.dailyLivingIndependence}
@@ -334,7 +334,7 @@ export default function PatientDetailPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">
               急変・終末期
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <ReadOnlyField label="急変時" value={patient.emergencyResponse} />
               <ReadOnlyField
                 label="急変時-備考"
@@ -365,7 +365,7 @@ export default function PatientDetailPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">
               契約・その他
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <ReadOnlyField label="契約書" value={patient.contract} />
               <ReadOnlyField
                 label="個人賠償保険期限"

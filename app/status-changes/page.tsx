@@ -6,7 +6,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import Button from '@/components/common/Button';
 import {
   mockStatusChanges,
-  primaryCareTypes,
+  primaryCareOptions,
   statusOptions,
   StatusChange,
 } from '@/data/mockStatusChanges';
@@ -66,7 +66,7 @@ export default function StatusChangesPage() {
       // かかりつけ種別フィルター
       if (
         selectedPrimaryCareType &&
-        report.primaryCareType !== selectedPrimaryCareType
+        report.primaryCare !== selectedPrimaryCareType
       ) {
         return false;
       }
@@ -144,8 +144,8 @@ export default function StatusChangesPage() {
           report.reporterName,
           report.changeDate,
           report.changeTime,
-          report.primaryCareType,
-          report.changeType,
+          report.primaryCare,
+          report.statusChangeType,
           `"${report.changeDescription}"`,
           `"${report.supplementaryNote}"`,
           report.temperature || '',
@@ -247,18 +247,18 @@ export default function StatusChangesPage() {
   };
 
   // かかりつけ種別バッジの色
-  const getPrimaryCareColor = (type: string) => {
+  const getPrimaryCareColor = (type: string | undefined) => {
     switch (type) {
-      case '病院':
+      case '小山内科クリニック':
         return 'bg-blue-100 text-blue-800';
-      case 'クリニック':
+      case 'あおぞらクリニック':
         return 'bg-indigo-100 text-indigo-800';
-      case '訪問診療':
+      case '武蔵ヶ丘病院':
         return 'bg-purple-100 text-purple-800';
-      case '救急搬送':
-        return 'bg-red-100 text-red-800';
-      case 'なし':
-        return 'bg-gray-100 text-gray-800';
+      case 'グレース':
+        return 'bg-green-100 text-green-800';
+      case 'その他のかかりつけor予定入院':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -406,7 +406,7 @@ export default function StatusChangesPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">すべて</option>
-                {primaryCareTypes.map((type) => (
+                {primaryCareOptions.map((type) => (
                   <option key={type} value={type}>
                     {type}
                   </option>
@@ -504,16 +504,16 @@ export default function StatusChangesPage() {
                     <p>
                       <span
                         className={`px-2 py-0.5 text-xs font-medium rounded ${getPrimaryCareColor(
-                          report.primaryCareType
+                          report.primaryCare
                         )}`}
                       >
-                        {report.primaryCareType}
+                        {report.primaryCare}
                       </span>
                     </p>
                   </div>
                   <div>
                     <span className="text-gray-600 text-xs">状態変化:</span>
-                    <p className="font-medium">{report.changeType}</p>
+                    <p className="font-medium">{report.statusChangeType}</p>
                   </div>
                   <div>
                     <span className="text-gray-600 text-xs">介護度:</span>
@@ -685,17 +685,17 @@ export default function StatusChangesPage() {
                     <td className="px-3 py-2 whitespace-nowrap text-sm">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded ${getPrimaryCareColor(
-                          report.primaryCareType
+                          report.primaryCare
                         )}`}
                       >
-                        {report.primaryCareType}
+                        {report.primaryCare}
                       </span>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
                       {renderEditableCell(
                         report,
-                        'changeType',
-                        report.changeType
+                        'statusChangeType',
+                        report.statusChangeType
                       )}
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">

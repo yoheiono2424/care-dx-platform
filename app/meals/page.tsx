@@ -221,9 +221,9 @@ export default function MealsPage() {
         </div>
 
         {/* スマホ表示: カード形式 */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-3">
           {filteredRecords.map((record) => (
-            <div key={record.id} className="bg-white rounded-lg shadow p-4">
+            <div key={record.id} className="bg-white rounded-xl shadow p-5">
               {/* ヘッダー */}
               <div className="mb-4 pb-4 border-b border-gray-200">
                 <div className="flex justify-between items-start">
@@ -238,7 +238,7 @@ export default function MealsPage() {
                   </div>
                   <button
                     onClick={() => router.push(`/meals/${record.id}/edit`)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors min-h-[44px]"
                   >
                     編集
                   </button>

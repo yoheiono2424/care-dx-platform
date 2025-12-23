@@ -5,9 +5,19 @@ import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import {
   facilityNames,
-  changeTypes,
-  primaryCareTypes,
   statusOptions,
+  primaryCareOptions,
+  statusChangeTypes,
+  initialResponseTypes,
+  transportHospitals,
+  aozoraClinicMedicationOptions,
+  aozoraClinicOxygenOptions,
+  musashigaokaMedicationOptions,
+  musashigaokaOxygenOptions,
+  PrimaryCareType,
+  StatusChangeType,
+  InitialResponseType,
+  TransportHospitalType,
 } from '@/data/mockStatusChanges';
 
 export default function StatusChangeCreatePage() {
@@ -17,70 +27,32 @@ export default function StatusChangeCreatePage() {
   const [formData, setFormData] = useState({
     // 基本情報
     patientName: '',
-    facilityName: '',
-    reporterName: '',
     changeDate: '',
-    changeTime: '',
-    primaryCareType: '' as
-      | ''
-      | '病院'
-      | 'クリニック'
-      | '訪問診療'
-      | '救急搬送'
-      | 'なし',
-    changeType: '',
+
+    // かかりつけ（設計書仕様）
+    primaryCare: '' as PrimaryCareType | '',
+
+    // 状態変化の種類（かかりつけ別）
+    statusChangeType: '' as StatusChangeType | '',
     changeDescription: '',
     supplementaryNote: '',
+
+    // 初回対応
+    initialResponse: '' as InitialResponseType | '',
+
+    // 初回対応別の詳細
+    observationDetails: '', // 経過観察詳細
+    medicationDetails: '', // 内服詳細
+    ivDetails: '', // 点滴詳細
+    medicationIvDetails: '', // 内服・点滴詳細
+    oxygenDetails: '', // 酸素投与詳細
+    outpatientDetails: '', // 外来受診詳細
+    transportHospital: '' as TransportHospitalType | '', // 搬送先病院
+    transportOther: '', // 搬送先（その他の場合）
+
+    // ステータス
     status: '対応中',
-
-    // バイタル
-    temperature: '',
-    bloodPressureHigh: '',
-    bloodPressureLow: '',
-    pulse: '',
-    spo2: '',
-
-    // 病院・クリニックルート用
-    hospitalName: '',
-    hospitalPhone: '',
-    consultationDate: '',
-    consultationTime: '',
-    diagnosis: '',
-    treatmentSummary: '',
-    prescription: '',
-    nextAppointment: '',
-
-    // 訪問診療ルート用
-    visitDoctorName: '',
-    visitDate: '',
-    visitTime: '',
-    visitDiagnosis: '',
-    visitTreatment: '',
-    visitPrescription: '',
-    visitNextDate: '',
-
-    // 救急搬送ルート用
-    emergencyHospital: '',
-    emergencyDate: '',
-    emergencyTime: '',
-    emergencyReason: '',
-    emergencyDiagnosis: '',
-    emergencyTreatment: '',
-    hospitalizationRequired: false,
-    hospitalizedDate: '',
-    dischargeDate: '',
-
-    // 連絡状況
-    familyContactDate: '',
-    familyContactTime: '',
-    familyContactPerson: '',
-    familyContactContent: '',
-    careManagerContactDate: '',
-    careManagerContactContent: '',
   });
-
-  // ファイルアップロード状態
-  const [changeFile, setChangeFile] = useState<File | null>(null);
 
   // 保存状態
   const [isSaving, setIsSaving] = useState(false);
@@ -91,21 +63,8 @@ export default function StatusChangeCreatePage() {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
-    const { name, value, type } = e.target;
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  // ファイル変更ハンドラ
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setChangeFile(file);
-    }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // 保存処理
@@ -115,12 +74,10 @@ export default function StatusChangeCreatePage() {
     // バリデーション
     if (
       !formData.patientName ||
-      !formData.facilityName ||
-      !formData.reporterName ||
       !formData.changeDate ||
-      !formData.changeTime ||
-      !formData.primaryCareType ||
-      !formData.changeType
+      !formData.primaryCare ||
+      !formData.statusChangeType ||
+      !formData.initialResponse
     ) {
       alert('必須項目を入力してください');
       setIsSaving(false);
@@ -142,365 +99,220 @@ export default function StatusChangeCreatePage() {
     }
   };
 
-  // かかりつけ種別に応じた追加フォームをレンダリング
-  const renderPrimaryCareFields = () => {
-    switch (formData.primaryCareType) {
-      case '病院':
-      case 'クリニック':
+  // 内服選択肢を取得（かかりつけ別）
+  const getMedicationOptions = () => {
+    switch (formData.primaryCare) {
+      case 'あおぞらクリニック':
+        return aozoraClinicMedicationOptions;
+      case '武蔵ヶ丘病院':
+        return musashigaokaMedicationOptions;
+      default:
+        return null; // 選択肢なし（自由入力）
+    }
+  };
+
+  // 酸素投与選択肢を取得（かかりつけ別）
+  const getOxygenOptions = () => {
+    switch (formData.primaryCare) {
+      case 'あおぞらクリニック':
+        return aozoraClinicOxygenOptions;
+      case '武蔵ヶ丘病院':
+        return musashigaokaOxygenOptions;
+      default:
+        return null; // 選択肢なし（自由入力）
+    }
+  };
+
+  // 初回対応に応じた詳細フォームをレンダリング
+  const renderInitialResponseDetails = () => {
+    if (!formData.initialResponse) return null;
+
+    const medicationOptions = getMedicationOptions();
+    const oxygenOptions = getOxygenOptions();
+
+    switch (formData.initialResponse) {
+      case '経過観察':
         return (
-          <div className="border-t pt-6 mt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              {formData.primaryCareType === '病院' ? '病院' : 'クリニック'}
-              受診情報
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  医療機関名
-                </label>
-                <input
-                  type="text"
-                  name="hospitalName"
-                  value={formData.hospitalName}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="医療機関名"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  電話番号
-                </label>
-                <input
-                  type="tel"
-                  name="hospitalPhone"
-                  value={formData.hospitalPhone}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="03-1234-5678"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  受診日
-                </label>
-                <input
-                  type="date"
-                  name="consultationDate"
-                  value={formData.consultationDate}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  受診時刻
-                </label>
-                <input
-                  type="time"
-                  name="consultationTime"
-                  value={formData.consultationTime}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  診断名
-                </label>
-                <input
-                  type="text"
-                  name="diagnosis"
-                  value={formData.diagnosis}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="診断名"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  次回予約日
-                </label>
-                <input
-                  type="date"
-                  name="nextAppointment"
-                  value={formData.nextAppointment}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  処置内容
-                </label>
-                <textarea
-                  name="treatmentSummary"
-                  value={formData.treatmentSummary}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="処置内容を入力してください"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  処方
-                </label>
-                <textarea
-                  name="prescription"
-                  value={formData.prescription}
-                  onChange={handleChange}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="処方内容を入力してください"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              経過観察詳細
+            </label>
+            <textarea
+              name="observationDetails"
+              value={formData.observationDetails}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="経過観察の詳細を入力してください"
+            />
           </div>
         );
 
-      case '訪問診療':
+      case '内服':
         return (
-          <div className="border-t pt-6 mt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              訪問診療情報
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  担当医師名
-                </label>
-                <input
-                  type="text"
-                  name="visitDoctorName"
-                  value={formData.visitDoctorName}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="担当医師名"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  訪問日
-                </label>
-                <input
-                  type="date"
-                  name="visitDate"
-                  value={formData.visitDate}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  訪問時刻
-                </label>
-                <input
-                  type="time"
-                  name="visitTime"
-                  value={formData.visitTime}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  診断名
-                </label>
-                <input
-                  type="text"
-                  name="visitDiagnosis"
-                  value={formData.visitDiagnosis}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="診断名"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  次回訪問予定日
-                </label>
-                <input
-                  type="date"
-                  name="visitNextDate"
-                  value={formData.visitNextDate}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  処置内容
-                </label>
-                <textarea
-                  name="visitTreatment"
-                  value={formData.visitTreatment}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="処置内容を入力してください"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  処方
-                </label>
-                <textarea
-                  name="visitPrescription"
-                  value={formData.visitPrescription}
-                  onChange={handleChange}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="処方内容を入力してください"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              内服詳細
+            </label>
+            {medicationOptions ? (
+              <select
+                name="medicationDetails"
+                value={formData.medicationDetails}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">選択してください</option>
+                {medicationOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <textarea
+                name="medicationDetails"
+                value={formData.medicationDetails}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="内服の詳細を入力してください"
+              />
+            )}
           </div>
         );
 
-      case '救急搬送':
+      case '点滴':
         return (
-          <div className="border-t pt-6 mt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              救急搬送情報
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  搬送先病院
-                </label>
-                <input
-                  type="text"
-                  name="emergencyHospital"
-                  value={formData.emergencyHospital}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="搬送先病院名"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  搬送日
-                </label>
-                <input
-                  type="date"
-                  name="emergencyDate"
-                  value={formData.emergencyDate}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  搬送時刻
-                </label>
-                <input
-                  type="time"
-                  name="emergencyTime"
-                  value={formData.emergencyTime}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  搬送理由
-                </label>
-                <input
-                  type="text"
-                  name="emergencyReason"
-                  value={formData.emergencyReason}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="搬送理由"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  診断名
-                </label>
-                <input
-                  type="text"
-                  name="emergencyDiagnosis"
-                  value={formData.emergencyDiagnosis}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="診断名"
-                />
-              </div>
-              <div className="flex items-center">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="hospitalizationRequired"
-                    checked={formData.hospitalizationRequired}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    入院が必要
-                  </span>
-                </label>
-              </div>
-              {formData.hospitalizationRequired && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      入院日
-                    </label>
-                    <input
-                      type="date"
-                      name="hospitalizedDate"
-                      value={formData.hospitalizedDate}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      退院予定日
-                    </label>
-                    <input
-                      type="date"
-                      name="dischargeDate"
-                      value={formData.dischargeDate}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </>
-              )}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  処置内容
-                </label>
-                <textarea
-                  name="emergencyTreatment"
-                  value={formData.emergencyTreatment}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="処置内容を入力してください"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              点滴詳細
+            </label>
+            <textarea
+              name="ivDetails"
+              value={formData.ivDetails}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="点滴の詳細を入力してください"
+            />
           </div>
         );
 
-      case 'なし':
+      case '内服・点滴':
         return (
-          <div className="border-t pt-6 mt-6">
-            <div className="bg-gray-50 p-4 rounded-md">
-              <p className="text-sm text-gray-600">
-                かかりつけ医療機関への対応なし。経過観察または家族・ケアマネへの連絡のみ行います。
-              </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              内服・点滴詳細
+            </label>
+            <textarea
+              name="medicationIvDetails"
+              value={formData.medicationIvDetails}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="内服・点滴の詳細を入力してください"
+            />
+          </div>
+        );
+
+      case '酸素投与':
+        return (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              酸素投与詳細
+            </label>
+            {oxygenOptions ? (
+              <select
+                name="oxygenDetails"
+                value={formData.oxygenDetails}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">選択してください</option>
+                {oxygenOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <textarea
+                name="oxygenDetails"
+                value={formData.oxygenDetails}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="酸素投与の詳細を入力してください"
+              />
+            )}
+          </div>
+        );
+
+      case '外来受診':
+        return (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              外来受診詳細
+            </label>
+            <textarea
+              name="outpatientDetails"
+              value={formData.outpatientDetails}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="外来受診の詳細を入力してください"
+            />
+          </div>
+        );
+
+      case '搬送':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                搬送先病院
+              </label>
+              <select
+                name="transportHospital"
+                value={formData.transportHospital}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">選択してください</option>
+                {transportHospitals.map((hospital) => (
+                  <option key={hospital} value={hospital}>
+                    {hospital}
+                  </option>
+                ))}
+              </select>
             </div>
+            {formData.transportHospital === 'その他' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  搬送先病院名（その他）
+                </label>
+                <input
+                  type="text"
+                  name="transportOther"
+                  value={formData.transportOther}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="搬送先病院名を入力してください"
+                />
+              </div>
+            )}
           </div>
         );
 
       default:
         return null;
     }
+  };
+
+  // かかりつけ別のセクションタイトルを取得
+  const getPrimaryCareLabel = () => {
+    if (!formData.primaryCare) return '';
+    return formData.primaryCare;
   };
 
   return (
@@ -522,8 +334,8 @@ export default function StatusChangeCreatePage() {
 
         {/* 作成フォーム */}
         <div className="bg-white rounded-lg shadow p-6">
-          {/* 基本情報セクション */}
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">基本情報</h3>
+          {/* 共通セクション */}
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">共通</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 利用者氏名 */}
             <div>
@@ -540,45 +352,10 @@ export default function StatusChangeCreatePage() {
               />
             </div>
 
-            {/* 事業所名 */}
+            {/* 状態変化日 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                事業所名 <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="facilityName"
-                value={formData.facilityName}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">選択してください</option>
-                {facilityNames.map((facility) => (
-                  <option key={facility} value={facility}>
-                    {facility}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* 記録者名 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                記録者名 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="reporterName"
-                value={formData.reporterName}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="記録者名"
-              />
-            </div>
-
-            {/* 状態変化発生日 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                状態変化発生日 <span className="text-red-500">*</span>
+                状態変化日 <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -589,159 +366,88 @@ export default function StatusChangeCreatePage() {
               />
             </div>
 
-            {/* 状態変化発生時刻 */}
-            <div>
+            {/* かかりつけ */}
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                状態変化発生時刻 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="time"
-                name="changeTime"
-                value={formData.changeTime}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* かかりつけ種別 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                かかりつけ種別 <span className="text-red-500">*</span>
+                かかりつけ <span className="text-red-500">*</span>
               </label>
               <select
-                name="primaryCareType"
-                value={formData.primaryCareType}
+                name="primaryCare"
+                value={formData.primaryCare}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">選択してください</option>
-                {primaryCareTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* 状態変化の種類 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                状態変化の種類 <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="changeType"
-                value={formData.changeType}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">選択してください</option>
-                {changeTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* ステータス */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ステータス
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
+                {primaryCareOptions.map((care) => (
+                  <option key={care} value={care}>
+                    {care}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* バイタルセクション */}
-          <div className="border-t pt-6 mt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              バイタル情報
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  体温 (℃)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  name="temperature"
-                  value={formData.temperature}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="36.5"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  血圧(高)
-                </label>
-                <input
-                  type="number"
-                  name="bloodPressureHigh"
-                  value={formData.bloodPressureHigh}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="120"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  血圧(低)
-                </label>
-                <input
-                  type="number"
-                  name="bloodPressureLow"
-                  value={formData.bloodPressureLow}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="80"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  脈拍
-                </label>
-                <input
-                  type="number"
-                  name="pulse"
-                  value={formData.pulse}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="72"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  SpO2 (%)
-                </label>
-                <input
-                  type="number"
-                  name="spo2"
-                  value={formData.spo2}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="98"
-                />
+          {/* かかりつけ別セクション */}
+          {formData.primaryCare && (
+            <div className="border-t pt-6 mt-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                {getPrimaryCareLabel()}ルート
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 状態変化 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {getPrimaryCareLabel()}　状態変化{' '}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="statusChangeType"
+                    value={formData.statusChangeType}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">選択してください</option>
+                    {statusChangeTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 初回対応 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {getPrimaryCareLabel()}　初回対応{' '}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="initialResponse"
+                    value={formData.initialResponse}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">選択してください</option>
+                    {initialResponseTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 初回対応別の詳細 */}
+                <div className="md:col-span-2">
+                  {renderInitialResponseDetails()}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* 状態変化内容 */}
+          {/* 補足情報 */}
           <div className="border-t pt-6 mt-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              状態変化内容
+              補足情報
             </h3>
             <div className="space-y-4">
               <div>
@@ -759,22 +465,6 @@ export default function StatusChangeCreatePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  添付ファイル
-                </label>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                />
-                {changeFile && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    選択中: {changeFile.name}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   補足説明
                 </label>
                 <textarea
@@ -786,92 +476,22 @@ export default function StatusChangeCreatePage() {
                   placeholder="補足説明を入力してください"
                 />
               </div>
-            </div>
-          </div>
-
-          {/* かかりつけ種別に応じた追加フィールド */}
-          {renderPrimaryCareFields()}
-
-          {/* 連絡状況セクション */}
-          <div className="border-t pt-6 mt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              連絡状況
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  家族連絡日
+                  ステータス
                 </label>
-                <input
-                  type="date"
-                  name="familyContactDate"
-                  value={formData.familyContactDate}
+                <select
+                  name="status"
+                  value={formData.status}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  家族連絡時刻
-                </label>
-                <input
-                  type="time"
-                  name="familyContactTime"
-                  value={formData.familyContactTime}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  連絡先（続柄・氏名）
-                </label>
-                <input
-                  type="text"
-                  name="familyContactPerson"
-                  value={formData.familyContactPerson}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例: 田中 一郎（長男）"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ケアマネ連絡日
-                </label>
-                <input
-                  type="date"
-                  name="careManagerContactDate"
-                  value={formData.careManagerContactDate}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  家族連絡内容
-                </label>
-                <textarea
-                  name="familyContactContent"
-                  value={formData.familyContactContent}
-                  onChange={handleChange}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="家族への連絡内容を入力してください"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ケアマネ連絡内容
-                </label>
-                <textarea
-                  name="careManagerContactContent"
-                  value={formData.careManagerContactContent}
-                  onChange={handleChange}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="ケアマネへの連絡内容を入力してください"
-                />
+                >
+                  {statusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

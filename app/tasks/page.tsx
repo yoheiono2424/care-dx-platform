@@ -140,17 +140,17 @@ export default function TasksPage() {
         </div>
 
         {/* スマホ表示: カード形式 */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-3">
           {data.map((row) => (
             <div
               key={row.id}
-              className="bg-white rounded-lg shadow p-4 space-y-3 cursor-pointer hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl shadow p-5 cursor-pointer hover:shadow-md active:bg-gray-50 transition-all"
               onClick={() => handleViewDetail(row.id)}
             >
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm text-gray-500">部屋 {row.roomNumber}</p>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-bold text-gray-900">
                     {row.patientName}
                   </h3>
                   <p className="text-sm text-gray-600">
@@ -160,19 +160,35 @@ export default function TasksPage() {
                 <div className="text-right">
                   <p className="text-xs text-gray-500 mb-1">入院スコア</p>
                   <p
-                    className={`text-2xl font-bold ${getScoreColor(row.admissionScore)}`}
+                    className={`text-3xl font-bold ${getScoreColor(row.admissionScore)}`}
                   >
                     {row.admissionScore}
                   </p>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+              <div className="flex justify-between items-center pt-4 mt-4 border-t border-gray-200">
                 <div>
                   <p className="text-sm text-gray-500">未完了タスク</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-xl font-bold text-gray-900">
                     {row.incompleteTasks}件
                   </p>
+                </div>
+                <div className="flex items-center text-blue-600">
+                  <span className="text-sm font-medium">詳細を見る</span>
+                  <svg
+                    className="w-5 h-5 ml-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
                 </div>
               </div>
             </div>
